@@ -40,17 +40,18 @@ int worldMap[screenWidth][screenHeight] =
 
 int main(int argc, char* args[])
 {
-	double posX = 22, posY = 12;
-	double dirX = -1, dirY = 0;
+	double posX = 22, posY = 12;	
+    double dirX = -1, dirY = 0;
 	double planeX = 0, planeY = 0.66;
-
-	double time = 0;
-	double oldTime = 0;
+    double moveSpeed = 0.5f;
+    double rotSpeed = 0.1f;
 
 	SDL_Window* window = NULL;
 	SDL_Surface* screenSurface = NULL;
 
     const SDL_Rect* slice;
+
+    SDL_Event event;
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -158,6 +159,41 @@ int main(int argc, char* args[])
         }
 
         SDL_UpdateWindowSurface(window);
+
+        double oldDirX = dirX;
+        double oldPlaneX = planeX;
+
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+                /* Look for a keypress */
+            case SDL_KEYDOWN:
+                /* Check the SDLKey values and move change the coords */
+                switch (event.key.keysym.sym) {
+                case SDLK_LEFT:     
+                    dirX = dirX * cos(rotSpeed) - dirY * sin(rotSpeed);
+                    dirY = oldDirX * sin(rotSpeed) + dirY * cos(rotSpeed);
+                    planeX = planeX * cos(rotSpeed) - planeY * sin(rotSpeed);
+                    planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
+                    break;
+                case SDLK_RIGHT:
+                    dirX = dirX * cos(-rotSpeed) - dirY * sin(-rotSpeed);
+                    dirY = oldDirX * sin(-rotSpeed) + dirY * cos(-rotSpeed);
+                    planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed);
+                    planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
+                    break;
+                case SDLK_UP:
+                    if (worldMap[int(posX + dirX * moveSpeed)][int(posY)] == false) posX += dirX * moveSpeed;
+                    if (worldMap[int(posX)][int(posY + dirY * moveSpeed)] == false) posY += dirY * moveSpeed;
+                    break;
+                case SDLK_DOWN:
+                    if (worldMap[int(posX - dirX * moveSpeed)][int(posY)] == false) posX -= dirX * moveSpeed;
+                    if (worldMap[int(posX)][int(posY - dirY * moveSpeed)] == false) posY -= dirY * moveSpeed;
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
 	}
 
 	SDL_DestroyWindow(window);
