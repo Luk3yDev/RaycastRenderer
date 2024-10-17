@@ -86,20 +86,27 @@ SDL_Color getPixelColor(SDL_Surface* surface, int x, int y) {
     return color;
 }
 
-void setPixel(SDL_Surface* surface, int x, int y, Uint8 pixel) {
-    if (surface == nullptr) {
-        std::cerr << "Surface is null!" << std::endl;
+void setPixel(SDL_Surface* surface, int x, int y, Uint32 color) {
+    // Check if the coordinates are within the surface bounds
+    if (x < 0 || x >= surface->w || y < 0 || y >= surface->h) {
+        return; // Out of bounds
     }
+
+    // Lock the surface if it is not already locked
+    if (SDL_MUSTLOCK(surface)) {
+        if (SDL_LockSurface(surface) < 0) {
+            std::cerr << "Unable to lock surface: " << SDL_GetError() << std::endl;
+            return;
+        }
+    }
+
+    // Get the address of the pixel
+    Uint32* pixels = (Uint32*)surface->pixels;
+    pixels[(y * surface->w) + x] = color; // Set the pixel color
+
+    // Unlock the surface
     if (SDL_MUSTLOCK(surface)) {
         SDL_UnlockSurface(surface);
-    }
-    
-    int bpp = surface->format->BytesPerPixel;
-    Uint8* pixels = (Uint8*)surface->pixels;
-    pixels[y * surface->pitch + x * bpp] = pixel;
-
-    if (SDL_MUSTLOCK(surface)) {
-        SDL_LockSurface(surface);
     }
 }
 
@@ -235,17 +242,9 @@ int main(int argc, char* args[])
             for (int y = 0; y < lineHeight; y++)
             {   
                 int sampleY = (int)floor(y / verticleScale);
-
-                /*
+                
                 SDL_Color rgb = getPixelColor(bricks, sampleX, sampleY);
-                setPixel(screenSurface, x, y + (screenHeight / 2) - (lineHeight / 2), (rgb.r, rgb.g, rgb.b));
-                */
-               
-                SDL_Rect *slice = new SDL_Rect{ x, y + (screenHeight / 2) - (lineHeight / 2), 1, 1};
-                SDL_Color rgb = getPixelColor(bricks, sampleX, sampleY);
-                SDL_FillRect(screenSurface, slice, SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
-
-                delete(slice);               
+                setPixel(screenSurface, x, y + (screenHeight / 2) - (lineHeight / 2), SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
             }
         }
 
