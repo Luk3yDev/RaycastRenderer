@@ -38,36 +38,14 @@ int worldMap[screenWidth][screenHeight] =
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
-Uint32 getpixel(SDL_Surface* surface, int x, int y)
+SDL_Color UintToColor(Uint32 color)
 {
-    int bpp = surface->format->BytesPerPixel;
-    /* Here p is the address to the pixel we want to retrieve */
-    Uint8* p = (Uint8*)surface->pixels + y * surface->pitch + x * bpp;
-
-    switch (bpp)
-    {
-    case 1:
-        return *p;
-        break;
-
-    case 2:
-        return *(Uint16*)p;
-        break;
-
-    case 3:
-        if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-            return p[0] << 16 | p[1] << 8 | p[2];
-        else
-            return p[0] | p[1] << 8 | p[2] << 16;
-        break;
-
-    case 4:
-        return *(Uint32*)p;
-        break;
-
-    default:
-        return 0;
-    }
+    SDL_Color tempcol;
+    tempcol.a = 255;
+    tempcol.r = (color >> 16) & 0xFF;
+    tempcol.g = (color >> 8) & 0xFF;
+    tempcol.b = color & 0xFF;
+    return tempcol;
 }
 
 int main(int argc, char* args[])
@@ -81,13 +59,11 @@ int main(int argc, char* args[])
 	SDL_Window* window = NULL;
 	SDL_Surface* screenSurface = NULL;
 
-    const SDL_Rect* slice;
-
     SDL_Event event;
 
-    int textureSize = 128;
+    const int textureSize = 128;
     SDL_Surface* bricks = SDL_LoadBMP("brick.bmp");
-    SDL_BlitSurface(bricks, NULL, screenSurface, NULL);
+    //SDL_BlitSurface(bricks, NULL, screenSurface, NULL);
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -188,24 +164,28 @@ int main(int argc, char* args[])
             int drawEnd = lineHeight / 2 + screenHeight / 2;
             if (drawEnd >= screenHeight) drawEnd = screenHeight - 1;
 
-            int distColor = -perpWallDist * 8;
-            
-            slice = new SDL_Rect{x, drawStart, 1, lineHeight};
-
-            int r = 255;
-            int g = 255;
-            int b = 255;
+            int distColor = perpWallDist * -8;
 
             int sampleX = floor(((stepX + stepY) % 1) * textureSize);
-
             float verticleScale = lineHeight / textureSize;
 
+            /*
             for (int y = 0; y < lineHeight; y++)
             {
-                int r = getpixel(bricks, sampleX, floor((float)y * verticleScale));
-                SDL_FillRect(screenSurface, slice, SDL_MapRGB(screenSurface->format, r, r, r));
-            }
+                SDL_Rect *slice = new SDL_Rect{ x, y + (screenHeight / 2) - (lineHeight / 2), 1, 1};
 
+                uint32_t *pix = (uint32_t*) bricks->pixels;
+                SDL_Color rgb = UintToColor(pix[ sampleX + (int)(floor((float)y * verticleScale) * bricks->w) ]);
+
+                SDL_FillRect(screenSurface, slice, SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
+
+                delete(slice);
+            }
+            */
+
+            SDL_Color rgb = {distColor, distColor, distColor};
+            SDL_Rect* slice = new SDL_Rect{ x, drawStart, 1, lineHeight };
+            SDL_FillRect(screenSurface, slice, SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
             delete(slice);
         }
 
@@ -214,6 +194,7 @@ int main(int argc, char* args[])
         double oldDirX = dirX;
         double oldPlaneX = planeX;
 
+        // Input
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 /* Look for a keypress */
