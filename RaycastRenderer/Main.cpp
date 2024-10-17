@@ -38,6 +38,38 @@ int worldMap[screenWidth][screenHeight] =
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
+Uint32 getpixel(SDL_Surface* surface, int x, int y)
+{
+    int bpp = surface->format->BytesPerPixel;
+    /* Here p is the address to the pixel we want to retrieve */
+    Uint8* p = (Uint8*)surface->pixels + y * surface->pitch + x * bpp;
+
+    switch (bpp)
+    {
+    case 1:
+        return *p;
+        break;
+
+    case 2:
+        return *(Uint16*)p;
+        break;
+
+    case 3:
+        if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+            return p[0] << 16 | p[1] << 8 | p[2];
+        else
+            return p[0] | p[1] << 8 | p[2] << 16;
+        break;
+
+    case 4:
+        return *(Uint32*)p;
+        break;
+
+    default:
+        return 0;
+    }
+}
+
 int main(int argc, char* args[])
 {
 	double posX = 22, posY = 12;	
@@ -52,6 +84,10 @@ int main(int argc, char* args[])
     const SDL_Rect* slice;
 
     SDL_Event event;
+
+    int textureSize = 128;
+    SDL_Surface* bricks = SDL_LoadBMP("brick.bmp");
+    SDL_BlitSurface(bricks, NULL, screenSurface, NULL);
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -73,7 +109,9 @@ int main(int argc, char* args[])
 		}
 	}
 
-	while (true)
+    bool done = false;
+
+	while (!done)
 	{
         SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
 
@@ -153,7 +191,20 @@ int main(int argc, char* args[])
             int distColor = -perpWallDist * 8;
             
             slice = new SDL_Rect{x, drawStart, 1, lineHeight};
-            SDL_FillRect(screenSurface, slice, SDL_MapRGB(screenSurface->format, distColor, distColor, distColor));
+
+            int r = 255;
+            int g = 255;
+            int b = 255;
+
+            int sampleX = floor(((stepX + stepY) % 1) * textureSize);
+
+            float verticleScale = lineHeight / textureSize;
+
+            for (int y = 0; y < lineHeight; y++)
+            {
+                int r = getpixel(bricks, sampleX, floor((float)y * verticleScale));
+                SDL_FillRect(screenSurface, slice, SDL_MapRGB(screenSurface->format, r, r, r));
+            }
 
             delete(slice);
         }
@@ -189,6 +240,8 @@ int main(int argc, char* args[])
                     if (worldMap[int(posX - dirX * moveSpeed)][int(posY)] == false) posX -= dirX * moveSpeed;
                     if (worldMap[int(posX)][int(posY - dirY * moveSpeed)] == false) posY -= dirY * moveSpeed;
                     break;
+                case SDLK_ESCAPE:
+                    done = true;
                 default:
                     break;
                 }
@@ -196,8 +249,8 @@ int main(int argc, char* args[])
         }
 	}
 
-	SDL_DestroyWindow(window);
-	SDL_Quit();
-	
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
 	return 0;
 }
