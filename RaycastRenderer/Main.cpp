@@ -48,6 +48,54 @@ SDL_Color UintToColor(Uint32 color)
     return tempcol;
 }
 
+SDL_Color getPixelColor(SDL_Surface* surface, int x, int y) {
+    SDL_Color color = { 0, 0, 0, 255 }; // Default color (black)
+
+    // Check if the surface is valid
+    if (surface == nullptr) {
+        std::cerr << "Surface is null!" << std::endl;
+        return color;
+    }
+
+    // Lock the surface if necessary
+    if (SDL_MUSTLOCK(surface)) {
+        SDL_LockSurface(surface);
+    }
+
+    // Calculate the pixel position
+    int bpp = surface->format->BytesPerPixel;
+    Uint8* pixel = (Uint8*)surface->pixels + y * surface->pitch + x * bpp;
+
+    // Get the color based on the pixel format
+    switch (bpp) {
+    case 1: // 8-bit
+        color.r = color.g = color.b = *pixel; // Grayscale
+        break;
+    case 2: // 16-bit
+    {
+        Uint16 p = *(Uint16*)pixel;
+        SDL_GetRGB(p, surface->format, &color.r, &color.g, &color.b);
+    }
+    break;
+    case 3: // 24-bit
+        color.b = *pixel++;
+        color.g = *pixel++;
+        color.r = *pixel++;
+        break;
+    case 4: // 32-bit
+        Uint32 p = *(Uint32*)pixel;
+        SDL_GetRGBA(p, surface->format, &color.r, &color.g, &color.b, &color.a);
+        break;
+    }
+
+    // Unlock the surface if it was locked
+    if (SDL_MUSTLOCK(surface)) {
+        SDL_UnlockSurface(surface);
+    }
+
+    return color;
+}
+
 int main(int argc, char* args[])
 {
 	double posX = 22, posY = 12;	
@@ -61,7 +109,7 @@ int main(int argc, char* args[])
 
     SDL_Event event;
 
-    const int textureSize = 128;
+    const int textureSize = 64;
     SDL_Surface* bricks = SDL_LoadBMP("brick.bmp");
     //SDL_BlitSurface(bricks, NULL, screenSurface, NULL);
 
@@ -92,6 +140,7 @@ int main(int argc, char* args[])
         SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
         SDL_Rect* floorRect = new SDL_Rect{ 0, screenHeight / 2, screenWidth, screenHeight / 2 };
         SDL_FillRect(screenSurface, floorRect, SDL_MapRGB(screenSurface->format, 0x1A, 0x12, 0x10));
+        delete(floorRect);
 
         for (int x = 0; x < screenWidth; x++)
         {
@@ -115,6 +164,9 @@ int main(int argc, char* args[])
 
             int hit = 0;
             int side;
+
+            float hitX;
+            float hitY;
 
             if (rayDirX < 0)
             {
@@ -153,7 +205,12 @@ int main(int argc, char* args[])
                     side = 1;
                 }
 
-                if (worldMap[mapX][mapY] > 0) hit = 1;
+                if (worldMap[mapX][mapY] > 0)
+                {
+                    hitX = mapX;
+                    hitY = mapY;
+                    hit = 1;
+                }
             }
 
             if (side == 0) perpWallDist = (sideDistX - deltaDistX);
@@ -167,28 +224,27 @@ int main(int argc, char* args[])
             if (drawEnd >= screenHeight) drawEnd = screenHeight - 1;
 
             int distColor = perpWallDist * -8;
+            
+            float verticleScale = (float)lineHeight / (float)textureSize;
+            int sampleX = 32; //floor((std::fmod((hitX), 1.0f) * (float)textureSize));
 
-            int sampleX = floor(((stepX + stepY) % 1) * textureSize);
-            float verticleScale = lineHeight / textureSize;
-
-            /*
             for (int y = 0; y < lineHeight; y++)
-            {
+            {   
+                int sampleY = y / verticleScale;
+
                 SDL_Rect *slice = new SDL_Rect{ x, y + (screenHeight / 2) - (lineHeight / 2), 1, 1};
-
-                uint32_t *pix = (uint32_t*) bricks->pixels;
-                SDL_Color rgb = UintToColor(pix[ sampleX + (int)(floor((float)y * verticleScale) * bricks->w) ]);
-
+                SDL_Color rgb = getPixelColor(bricks, sampleX, sampleY);
                 SDL_FillRect(screenSurface, slice, SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
 
                 delete(slice);
-            }
-            */
+            }       
 
+            /*
             SDL_Color rgb = {distColor, distColor, distColor};
             SDL_Rect* slice = new SDL_Rect{ x, drawStart, 1, lineHeight };
             SDL_FillRect(screenSurface, slice, SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
             delete(slice);
+            */
         }
 
         SDL_UpdateWindowSurface(window);
