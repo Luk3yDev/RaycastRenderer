@@ -38,16 +38,6 @@ int worldMap[screenWidth][screenHeight] =
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
-SDL_Color UintToColor(Uint32 color)
-{
-    SDL_Color tempcol;
-    tempcol.a = 255;
-    tempcol.r = (color >> 16) & 0xFF;
-    tempcol.g = (color >> 8) & 0xFF;
-    tempcol.b = color & 0xFF;
-    return tempcol;
-}
-
 SDL_Color getPixelColor(SDL_Surface* surface, int x, int y) {
     SDL_Color color = { 0, 0, 0, 255 }; // Default color (black)
 
@@ -96,6 +86,23 @@ SDL_Color getPixelColor(SDL_Surface* surface, int x, int y) {
     return color;
 }
 
+void setPixel(SDL_Surface* surface, int x, int y, Uint8 pixel) {
+    if (surface == nullptr) {
+        std::cerr << "Surface is null!" << std::endl;
+    }
+    if (SDL_MUSTLOCK(surface)) {
+        SDL_UnlockSurface(surface);
+    }
+    
+    int bpp = surface->format->BytesPerPixel;
+    Uint8* pixels = (Uint8*)surface->pixels;
+    pixels[y * surface->pitch + x * bpp] = pixel;
+
+    if (SDL_MUSTLOCK(surface)) {
+        SDL_LockSurface(surface);
+    }
+}
+
 int main(int argc, char* args[])
 {
 	double posX = 22, posY = 12;	
@@ -111,7 +118,6 @@ int main(int argc, char* args[])
 
     const int textureSize = 64;
     SDL_Surface* bricks = SDL_LoadBMP("brick.bmp");
-    //SDL_BlitSurface(bricks, NULL, screenSurface, NULL);
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -218,33 +224,29 @@ int main(int argc, char* args[])
             int drawEnd = lineHeight / 2 + screenHeight / 2;
             if (drawEnd >= screenHeight) drawEnd = screenHeight - 1;
 
-            int distColor = perpWallDist * -8;
-
             double wallX; //where exactly the wall was hit
             if (side == 0) wallX = posY + perpWallDist * rayDirY;
             else           wallX = posX + perpWallDist * rayDirX;
             wallX -= floor((wallX));
             
             float verticleScale = (float)lineHeight / (float)textureSize;
-            int sampleX = (int)floor((wallX * textureSize)) % textureSize; //floor((std::fmod((hitX), 1.0f) * (float)textureSize));
+            int sampleX = (int)floor((wallX * textureSize)) % textureSize;
 
             for (int y = 0; y < lineHeight; y++)
             {   
-                int sampleY = y / verticleScale;
+                int sampleY = (int)floor(y / verticleScale);
 
+                /*
+                SDL_Color rgb = getPixelColor(bricks, sampleX, sampleY);
+                setPixel(screenSurface, x, y + (screenHeight / 2) - (lineHeight / 2), (rgb.r, rgb.g, rgb.b));
+                */
+               
                 SDL_Rect *slice = new SDL_Rect{ x, y + (screenHeight / 2) - (lineHeight / 2), 1, 1};
                 SDL_Color rgb = getPixelColor(bricks, sampleX, sampleY);
                 SDL_FillRect(screenSurface, slice, SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
 
-                delete(slice);
-            }       
-
-            /*
-            SDL_Color rgb = {distColor, distColor, distColor};
-            SDL_Rect* slice = new SDL_Rect{ x, drawStart, 1, lineHeight };
-            SDL_FillRect(screenSurface, slice, SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
-            delete(slice);
-            */
+                delete(slice);               
+            }
         }
 
         SDL_UpdateWindowSurface(window);
