@@ -165,9 +165,6 @@ int main(int argc, char* args[])
             int hit = 0;
             int side;
 
-            float hitX;
-            float hitY;
-
             if (rayDirX < 0)
             {
                 stepX = -1;
@@ -207,8 +204,6 @@ int main(int argc, char* args[])
 
                 if (worldMap[mapX][mapY] > 0)
                 {
-                    hitX = mapX;
-                    hitY = mapY;
                     hit = 1;
                 }
             }
@@ -224,9 +219,14 @@ int main(int argc, char* args[])
             if (drawEnd >= screenHeight) drawEnd = screenHeight - 1;
 
             int distColor = perpWallDist * -8;
+
+            double wallX; //where exactly the wall was hit
+            if (side == 0) wallX = posY + perpWallDist * rayDirY;
+            else           wallX = posX + perpWallDist * rayDirX;
+            wallX -= floor((wallX));
             
             float verticleScale = (float)lineHeight / (float)textureSize;
-            int sampleX = 32; //floor((std::fmod((hitX), 1.0f) * (float)textureSize));
+            int sampleX = (int)floor((wallX * textureSize)) % textureSize; //floor((std::fmod((hitX), 1.0f) * (float)textureSize));
 
             for (int y = 0; y < lineHeight; y++)
             {   
