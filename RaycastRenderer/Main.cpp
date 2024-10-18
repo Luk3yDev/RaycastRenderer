@@ -129,7 +129,16 @@ int main(int argc, char* args[])
     SDL_Event event;
 
     const int textureSize = 64;
-    SDL_Surface* bricks = SDL_LoadBMP("cobble.bmp");
+    const int wallTypes = 1;
+    SDL_Surface* wallTextures[wallTypes];
+
+    for (int i = 0; i < wallTypes; ++i) {
+        std::string fileName = "walls/tile_" + std::to_string(i) + ".bmp";
+        wallTextures[i] = SDL_LoadBMP(fileName.c_str());
+        if (!wallTextures[i]) {
+            std::cerr << "Failed to load wall texture! SDL_Error: " << SDL_GetError() << std::endl;
+        }
+    }
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -251,6 +260,8 @@ int main(int argc, char* args[])
             if (side == 0) wallX = posY + perpWallDist * rayDirY;
             else           wallX = posX + perpWallDist * rayDirX;
             wallX -= floor((wallX));
+
+            int wallType = 0; //worldMap[mapX][mapY];
             
             float verticleScale = (float)lineHeight / (float)textureSize;
             int sampleX = (int)floor((wallX * textureSize)) % textureSize;
@@ -261,9 +272,11 @@ int main(int argc, char* args[])
                 if (y + (screenHeight / 2) - (lineHeight / 2) < 0) continue;
                 int sampleY = (int)floor(y / verticleScale);
                 
-                SDL_Color rgb = getPixelColor(bricks, sampleX, sampleY);
+                SDL_Color rgb = getPixelColor(wallTextures[wallType], sampleX, sampleY);
                 setPixel(screenSurface, x, y + (screenHeight / 2) - (lineHeight / 2), SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
             }
+
+            
         }
 
         SDL_UpdateWindowSurface(window);
