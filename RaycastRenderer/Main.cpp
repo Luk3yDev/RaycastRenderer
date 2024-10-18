@@ -115,8 +115,8 @@ int main(int argc, char* args[])
 	double posX = 22, posY = 12;	
     double dirX = -1, dirY = 0;
 	double planeX = 0, planeY = 0.66;
-    double moveSpeed = 0.006f;
-    double rotSpeed = 0.0018f;
+    double moveSpeed = 0.5f;
+    double rotSpeed = 0.18f;
 
     bool movingForward = false;
     bool movingBackward = false;
@@ -129,7 +129,7 @@ int main(int argc, char* args[])
     SDL_Event event;
 
     const int textureSize = 64;
-    SDL_Surface* bricks = SDL_LoadBMP("brick.bmp");
+    SDL_Surface* bricks = SDL_LoadBMP("cobble.bmp");
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
@@ -160,7 +160,7 @@ int main(int argc, char* args[])
 	{
         LAST = NOW;
         NOW = SDL_GetPerformanceCounter();
-        deltaTime = (double)((NOW - LAST) * 1000 / (double)SDL_GetPerformanceFrequency());
+        deltaTime = (double)((NOW - LAST) * 10 / (double)SDL_GetPerformanceFrequency());
 
         // Clear the screen
         SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00)); 
@@ -270,7 +270,7 @@ int main(int argc, char* args[])
 
         double oldDirX = dirX;
         double oldPlaneX = planeX;
-
+        
         // Input
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_KEYDOWN)
@@ -315,7 +315,7 @@ int main(int argc, char* args[])
                 default:
                     break;
                 }
-            }
+            }           
             if (event.type == SDL_QUIT) done = true;
         }
 
