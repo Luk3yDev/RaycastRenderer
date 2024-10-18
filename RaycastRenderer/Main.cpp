@@ -237,10 +237,12 @@ int main(int argc, char* args[])
             wallX -= floor((wallX));
             
             float verticleScale = (float)lineHeight / (float)textureSize;
-            int sampleX = (int)floor((wallX * textureSize)) % textureSize;
+            int sampleX = (int)floor((wallX * textureSize)) % textureSize; 
 
             for (int y = 0; y < lineHeight; y++)
             {   
+                if (y + (screenHeight / 2) - (lineHeight / 2) > screenHeight) continue;
+                if (y + (screenHeight / 2) - (lineHeight / 2) < 0) continue;
                 int sampleY = (int)floor(y / verticleScale);
                 
                 SDL_Color rgb = getPixelColor(bricks, sampleX, sampleY);
