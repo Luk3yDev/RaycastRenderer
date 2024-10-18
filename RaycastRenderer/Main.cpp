@@ -160,14 +160,17 @@ int main(int argc, char* args[])
 	{
         LAST = NOW;
         NOW = SDL_GetPerformanceCounter();
-
         deltaTime = (double)((NOW - LAST) * 1000 / (double)SDL_GetPerformanceFrequency());
 
-        SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
-        SDL_Rect* floorRect = new SDL_Rect{ 0, screenHeight / 2, screenWidth, screenHeight / 2 };
+        // Clear the screen
+        SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00)); 
+
+        // Create the floor
+        SDL_Rect* floorRect = new SDL_Rect{ 0, screenHeight / 2, screenWidth, screenHeight / 2 }; 
         SDL_FillRect(screenSurface, floorRect, SDL_MapRGB(screenSurface->format, 0x12, 0x12, 0x12));
         delete(floorRect);
 
+        // Raycast
         for (int x = 0; x < screenWidth; x++)
         {
             double cameraX = 2 * x / (double)screenWidth - 1;
@@ -313,6 +316,7 @@ int main(int argc, char* args[])
             if (event.type == SDL_QUIT) done = true;
         }
 
+        // Applying input
         if (movingForward)
         {          
             if (worldMap[int(posX + dirX * moveSpeed * deltaTime)][int(posY)] == false) posX += dirX * moveSpeed * deltaTime;
