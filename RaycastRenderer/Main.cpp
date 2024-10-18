@@ -116,7 +116,7 @@ int main(int argc, char* args[])
     double dirX = -1, dirY = 0;
 	double planeX = 0, planeY = 0.66;
     double moveSpeed = 0.006f;
-    double rotSpeed = 0.002f;
+    double rotSpeed = 0.0018f;
 
     bool movingForward = false;
     bool movingBackward = false;
@@ -288,6 +288,9 @@ int main(int argc, char* args[])
                     break;
                 case SDLK_DOWN:
                     movingBackward = true;
+                    break;
+                case SDLK_ESCAPE:
+                    done = true;
                     break;
                 default:
                     break;
