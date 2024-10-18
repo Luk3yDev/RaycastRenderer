@@ -23,5 +23,8 @@
     <Image Include="brick.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="brickwork.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

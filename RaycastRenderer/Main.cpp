@@ -237,7 +237,7 @@ int main(int argc, char* args[])
             wallX -= floor((wallX));
             
             float verticleScale = (float)lineHeight / (float)textureSize;
-            int sampleX = (int)floor((wallX * textureSize)) % textureSize; 
+            int sampleX = (int)floor((wallX * textureSize)) % textureSize;
 
             for (int y = 0; y < lineHeight; y++)
             {   
