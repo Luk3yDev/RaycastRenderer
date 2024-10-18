@@ -115,8 +115,13 @@ int main(int argc, char* args[])
 	double posX = 22, posY = 12;	
     double dirX = -1, dirY = 0;
 	double planeX = 0, planeY = 0.66;
-    double moveSpeed = 0.5f;
-    double rotSpeed = 0.1f;
+    double moveSpeed = 0.005f;
+    double rotSpeed = 0.002f;
+
+    bool movingForward = false;
+    bool movingBackward = false;
+    bool turningRight = false;
+    bool turningLeft = false;
 
 	SDL_Window* window = NULL;
 	SDL_Surface* screenSurface = NULL;
@@ -257,37 +262,72 @@ int main(int argc, char* args[])
 
         // Input
         while (SDL_PollEvent(&event)) {
-            switch (event.type) {
-                /* Look for a keypress */
-            case SDL_KEYDOWN:
+            if (event.type == SDL_KEYDOWN)
+            {
                 /* Check the SDLKey values and move change the coords */
                 switch (event.key.keysym.sym) {
-                case SDLK_LEFT:     
-                    dirX = dirX * cos(rotSpeed) - dirY * sin(rotSpeed);
-                    dirY = oldDirX * sin(rotSpeed) + dirY * cos(rotSpeed);
-                    planeX = planeX * cos(rotSpeed) - planeY * sin(rotSpeed);
-                    planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
+                case SDLK_LEFT:
+                    turningLeft = true;
                     break;
                 case SDLK_RIGHT:
-                    dirX = dirX * cos(-rotSpeed) - dirY * sin(-rotSpeed);
-                    dirY = oldDirX * sin(-rotSpeed) + dirY * cos(-rotSpeed);
-                    planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed);
-                    planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
+                    turningRight = true;
                     break;
                 case SDLK_UP:
-                    if (worldMap[int(posX + dirX * moveSpeed)][int(posY)] == false) posX += dirX * moveSpeed;
-                    if (worldMap[int(posX)][int(posY + dirY * moveSpeed)] == false) posY += dirY * moveSpeed;
+                    movingForward = true;
                     break;
                 case SDLK_DOWN:
-                    if (worldMap[int(posX - dirX * moveSpeed)][int(posY)] == false) posX -= dirX * moveSpeed;
-                    if (worldMap[int(posX)][int(posY - dirY * moveSpeed)] == false) posY -= dirY * moveSpeed;
+                    movingBackward = true;
                     break;
-                case SDLK_ESCAPE:
-                    done = true;
                 default:
                     break;
                 }
             }
+            if (event.type == SDL_KEYUP)
+            {
+                /* Check the SDLKey values and move change the coords */
+                switch (event.key.keysym.sym) {
+                case SDLK_LEFT:
+                    turningLeft = false;
+                    break;
+                case SDLK_RIGHT:
+                    turningRight = false;
+                    break;
+                case SDLK_UP:
+                    movingForward = false;
+                    break;
+                case SDLK_DOWN:
+                    movingBackward = false;
+                    break;
+                default:
+                    break;
+                }
+            }
+            if (event.type == SDL_QUIT) done = true;
+        }
+
+        if (movingForward)
+        {          
+            if (worldMap[int(posX + dirX * moveSpeed)][int(posY)] == false) posX += dirX * moveSpeed;
+            if (worldMap[int(posX)][int(posY + dirY * moveSpeed)] == false) posY += dirY * moveSpeed;
+        }
+        if (movingBackward)
+        {
+            if (worldMap[int(posX - dirX * moveSpeed)][int(posY)] == false) posX -= dirX * moveSpeed;
+            if (worldMap[int(posX)][int(posY - dirY * moveSpeed)] == false) posY -= dirY * moveSpeed;
+        }
+        if (turningRight)
+        {
+            dirX = dirX * cos(-rotSpeed) - dirY * sin(-rotSpeed);
+            dirY = oldDirX * sin(-rotSpeed) + dirY * cos(-rotSpeed);
+            planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed);
+            planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
+        }
+        if (turningLeft)
+        {
+            dirX = dirX * cos(rotSpeed) - dirY * sin(rotSpeed);
+            dirY = oldDirX * sin(rotSpeed) + dirY * cos(rotSpeed);
+            planeX = planeX * cos(rotSpeed) - planeY * sin(rotSpeed);
+            planeY = oldPlaneX * sin(rotSpeed) + planeY * cos(rotSpeed);
         }
 	}
 
