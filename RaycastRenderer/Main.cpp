@@ -115,8 +115,8 @@ int main(int argc, char* args[])
 	double posX = 22, posY = 12;	
     double dirX = -1, dirY = 0;
 	double planeX = 0, planeY = 0.66;
-    double moveSpeed = 0.5f;
-    double rotSpeed = 0.18f;
+    double moveSpeed = 6.0f;
+    double rotSpeed = 2.0f;
 
     bool movingForward = false;
     bool movingBackward = false;
@@ -160,7 +160,7 @@ int main(int argc, char* args[])
 	{
         LAST = NOW;
         NOW = SDL_GetPerformanceCounter();
-        deltaTime = (double)((NOW - LAST) * 10 / (double)SDL_GetPerformanceFrequency());
+        deltaTime = (double)((NOW - LAST) * 1 / (double)SDL_GetPerformanceFrequency());
 
         // Clear the screen
         SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00)); 
