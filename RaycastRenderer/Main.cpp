@@ -10,7 +10,7 @@
 #define screenWidth 640
 #define screenHeight 480
 
-int worldMap[screenWidth][screenHeight] =
+int worldMap[mapWidth][mapHeight] =
 {
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
