@@ -18,7 +18,7 @@ int worldMap[mapWidth][mapHeight] =
   {1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,1,0,0,0,1,0,0,0,4,4,4,4,0,0,0,2,2,2,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,1},
-  {1,0,0,1,0,0,0,1,0,0,0,3,3,3,3,0,0,0,2,2,2,0,0,1},
+  {1,0,0,1,0,0,0,1,0,0,0,4,4,4,4,0,0,0,2,2,2,0,0,1},
   {1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -132,8 +132,9 @@ int main(int argc, char* args[])
     const int wallTypes = 5;
     SDL_Surface* wallTextures[wallTypes];
 
-    for (int i = 0; i < wallTypes; i++) {
+    for (int i = 1; i < wallTypes; i++) {
         std::string fileName = "walls/tile_" + std::to_string(i) + ".bmp";
+        printf(fileName.c_str());
         wallTextures[i] = SDL_LoadBMP(fileName.c_str());
         if (!wallTextures[i]) {
             std::cerr << "Failed to load wall texture! SDL_Error: " << SDL_GetError() << std::endl;
