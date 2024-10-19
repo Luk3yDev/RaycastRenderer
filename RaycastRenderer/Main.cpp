@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #define mapWidth 24
 #define mapHeight 24
@@ -37,6 +39,43 @@ int worldMap[mapWidth][mapHeight] =
   {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
+
+void loadMap(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Could not open file for reading.\n";
+        return;
+    }
+
+    std::string line;
+    // Skip to the line containing the map data
+    while (std::getline(file, line)) {
+        if (line.find("int worldMap") != std::string::npos) {
+            // Start reading the actual map
+            break;
+        }
+    }
+
+    for (int y = 0; y < mapHeight; y++) {
+        std::getline(file, line);
+        std::stringstream ss(line);
+        std::string temp;
+
+        // Expecting a line starting with a brace
+        std::getline(ss, temp, '{');
+        for (int x = 0; x < mapWidth; x++) {
+            int tileValue;
+            ss >> tileValue;
+            worldMap[y][x] = tileValue;
+
+            // Read until the next comma or closing brace
+            std::getline(ss, temp, (x < mapWidth - 1) ? ',' : '}');
+        }
+    }
+
+    file.close();
+    std::cout << "Map loaded from " << filename << "\n";
+}
 
 SDL_Color getPixelColor(SDL_Surface* surface, int x, int y) {
     SDL_Color color = { 0, 0, 0, 255 }; // Default color (black)
@@ -112,6 +151,8 @@ void setPixel(SDL_Surface* surface, int x, int y, Uint32 color) {
 
 int main(int argc, char* args[])
 {
+    loadMap("maps/0.rmap");
+
 	double posX = 22, posY = 12;	
     double dirX = -1, dirY = 0;
 	double planeX = 0, planeY = 0.66;
@@ -133,11 +174,13 @@ int main(int argc, char* args[])
     SDL_Surface* wallTextures[wallTypes];
 
     for (int i = 1; i < wallTypes; i++) {
-        std::string fileName = "walls/tile_" + std::to_string(i) + ".bmp";
-        printf(("Loaded " + fileName + "\n").c_str());
+        std::string fileName = "walls/tile_" + std::to_string(i) + ".bmp";       
         wallTextures[i] = SDL_LoadBMP(fileName.c_str());
         if (!wallTextures[i]) {
             std::cerr << "Failed to load wall texture! SDL_Error: " << SDL_GetError() << std::endl;
+        }
+        else {
+            printf(("Loaded " + fileName + "\n").c_str());
         }
     }
 
