@@ -12,33 +12,7 @@
 #define screenWidth 640
 #define screenHeight 480
 
-int worldMap[mapWidth][mapHeight] =
-{
-  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,1,0,6,6,5,5,6,6,0,0,0,2,2,2,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,1},
-  {1,0,0,1,0,0,0,1,0,5,5,6,6,5,5,0,0,0,2,2,2,0,0,1},
-  {1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,1,0,6,6,6,6,6,6,0,0,0,0,4,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,1,0,5,5,5,5,5,5,0,0,0,2,2,2,0,0,1},
-  {1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,1},
-  {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,1},
-  {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,3,3,3,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,1},
-  {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,3,3,3,0,0,1},
-  {1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,3,0,0,0,1},
-  {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
-};
+int worldMap[mapWidth][mapHeight];
 
 void loadMap(const std::string& filename) {
     std::ifstream file(filename);
@@ -74,7 +48,7 @@ void loadMap(const std::string& filename) {
     }
 
     file.close();
-    std::cout << "Map loaded from " << filename << "\n";
+    std::cout << "Loaded Map " << filename << "\n";
 }
 
 SDL_Color getPixelColor(SDL_Surface* surface, int x, int y) {
@@ -151,12 +125,12 @@ void setPixel(SDL_Surface* surface, int x, int y, Uint32 color) {
 
 int main(int argc, char* args[])
 {
-    loadMap("maps/1.rmap");
+    loadMap("maps/2.rmap");
 
 	double posX = 2, posY = 2;
     double dirX = -1, dirY = 0;
 	double planeX = 0, planeY = 0.66;
-    double moveSpeed = 6.0f;
+    double moveSpeed = 5.0f;
     double rotSpeed = 2.0f;
 
     bool movingForward = false;
@@ -170,7 +144,7 @@ int main(int argc, char* args[])
     SDL_Event event;
 
     const int textureSize = 64;
-    const int wallTypes = 7; // Must always be higher than the actual amount of tile textures, as air (0) counts as a wall type
+    const int wallTypes = 9; // Must always be higher than the actual amount of tile textures, as air (0) counts as a wall type
     SDL_Surface* wallTextures[wallTypes];
 
     for (int i = 1; i < wallTypes; i++) {
