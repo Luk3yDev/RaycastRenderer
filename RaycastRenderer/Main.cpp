@@ -16,24 +16,24 @@ int worldMap[mapWidth][mapHeight] =
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,0,1,1,1,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,1},
-  {1,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,0,0,1,1,1,0,0,1},
+  {1,0,0,1,0,0,0,1,0,0,0,4,4,4,4,0,0,0,2,2,2,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,1},
+  {1,0,0,1,0,0,0,1,0,0,0,3,3,3,3,0,0,0,2,2,2,0,0,1},
+  {1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,3,3,3,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
@@ -129,10 +129,10 @@ int main(int argc, char* args[])
     SDL_Event event;
 
     const int textureSize = 64;
-    const int wallTypes = 1;
+    const int wallTypes = 5;
     SDL_Surface* wallTextures[wallTypes];
 
-    for (int i = 0; i < wallTypes; ++i) {
+    for (int i = 0; i < wallTypes; i++) {
         std::string fileName = "walls/tile_" + std::to_string(i) + ".bmp";
         wallTextures[i] = SDL_LoadBMP(fileName.c_str());
         if (!wallTextures[i]) {
@@ -242,7 +242,8 @@ int main(int argc, char* args[])
 
                 if (worldMap[mapX][mapY] > 0)
                 {
-                    hit = 1;
+                    hit = worldMap[mapX][mapY];
+                    if (hit > wallTypes) hit = 1;
                 }
             }
 
@@ -256,12 +257,10 @@ int main(int argc, char* args[])
             int drawEnd = lineHeight / 2 + screenHeight / 2;
             if (drawEnd >= screenHeight) drawEnd = screenHeight - 1;
 
-            double wallX; //where exactly the wall was hit
+            double wallX; // Exactly where the wall was hit
             if (side == 0) wallX = posY + perpWallDist * rayDirY;
             else           wallX = posX + perpWallDist * rayDirX;
             wallX -= floor((wallX));
-
-            int wallType = 0; //worldMap[mapX][mapY];
             
             float verticleScale = (float)lineHeight / (float)textureSize;
             int sampleX = (int)floor((wallX * textureSize)) % textureSize;
@@ -272,11 +271,9 @@ int main(int argc, char* args[])
                 if (y + (screenHeight / 2) - (lineHeight / 2) < 0) continue;
                 int sampleY = (int)floor(y / verticleScale);
                 
-                SDL_Color rgb = getPixelColor(wallTextures[wallType], sampleX, sampleY);
+                SDL_Color rgb = getPixelColor(wallTextures[hit], sampleX, sampleY);
                 setPixel(screenSurface, x, y + (screenHeight / 2) - (lineHeight / 2), SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
-            }
-
-            
+            }           
         }
 
         SDL_UpdateWindowSurface(window);
