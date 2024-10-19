@@ -151,9 +151,9 @@ void setPixel(SDL_Surface* surface, int x, int y, Uint32 color) {
 
 int main(int argc, char* args[])
 {
-    loadMap("maps/0.rmap");
+    loadMap("maps/1.rmap");
 
-	double posX = 22, posY = 12;	
+	double posX = 2, posY = 2;
     double dirX = -1, dirY = 0;
 	double planeX = 0, planeY = 0.66;
     double moveSpeed = 6.0f;
