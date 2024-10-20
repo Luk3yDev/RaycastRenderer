@@ -40,18 +40,24 @@ struct Sprite
     SDL_Surface* texture;  
 };
 
-#define numSprites 6
+#define numSprites 9
 
 Sprite sprite[numSprites] =
 {
-    {6.5, 8.5, 0},
-
     // Ceiling lights
-    {2.5, 2.5, 1},
-    {2.5, 4.5, 1},
-    {2.5, 6.5, 1},
-    {2.5, 8.5, 1},
-    {2.5, 10.5, 1}
+    {2.5, 2.5, 0},
+    {2.5, 4.5, 0},
+    {2.5, 6.5, 0},
+    {2.5, 8.5, 0},
+    {2.5, 10.5, 0},
+
+    // Healthpacks
+    {2.5, 11.5, 2},
+    {5.5, 11.5, 2},
+    
+    // Dudes
+    {4.5, 8.5, 4},
+    {6.5, 8.5, 5},
 };
 
 double ZBuffer[screenWidth];
