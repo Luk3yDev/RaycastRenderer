@@ -40,12 +40,18 @@ struct Sprite
     SDL_Surface* texture;  
 };
 
-#define numSprites 2
+#define numSprites 6
 
 Sprite sprite[numSprites] =
 {
-    {6.5, 6.5, 0},
-    {2.5, 2.5, 1}
+    {6.5, 8.5, 0},
+
+    // Ceiling lights
+    {2.5, 2.5, 1},
+    {2.5, 4.5, 1},
+    {2.5, 6.5, 1},
+    {2.5, 8.5, 1},
+    {2.5, 10.5, 1}
 };
 
 double ZBuffer[screenWidth];
@@ -361,9 +367,6 @@ int main(int argc, char* args[])
         if (!wallTextures[i]) {
             std::cerr << "Failed to load wall texture! SDL_Error: " << SDL_GetError() << std::endl;
         }
-        else {
-            printf(("Loaded " + fileName + "\n").c_str());
-        }
     }
     // Load sprite textures
     for (int i = 0; i < numSprites; i++) {
@@ -371,9 +374,6 @@ int main(int argc, char* args[])
         sprite[i].texture = SDL_LoadBMP(fileName.c_str());
         if (!sprite[i].texture) {
             std::cerr << "Failed to load sprite texture! SDL_Error: " << SDL_GetError() << std::endl;
-        }
-        else {
-            printf(("Loaded " + fileName + "\n").c_str());
         }
     }
 
