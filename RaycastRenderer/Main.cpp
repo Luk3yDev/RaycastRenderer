@@ -14,6 +14,9 @@
 #define screenHeight 600
 #define renderHeight 480
 
+#define texWidth 64
+#define texHeight 64
+
 int worldMap[mapWidth][mapHeight];
 
 SDL_Surface* screenSurface = NULL;
@@ -25,9 +28,45 @@ double planeX = 0, planeY = 0.66;
 double moveSpeed = 5.0f;
 double rotSpeed = 2.2f;
 
-const int textureSize = 64;
-const int wallTypes = 9; // Must always be higher than the actual amount of tile textures, as air (0) counts as a wall type
+const int wallTextureSize = 64;
+const int wallTypes = 9; // Must always be 1 higher than the actual amount of tile textures, as air (0) counts as a wall type
 SDL_Surface* wallTextures[wallTypes];
+
+struct Sprite
+{
+    double x;
+    double y;
+    int texIndex;
+    SDL_Surface* texture;  
+};
+
+#define numSprites 2
+
+Sprite sprite[numSprites] =
+{
+    {6.5, 6.5, 0},
+    {2.5, 2.5, 1}
+};
+
+double ZBuffer[screenWidth];
+
+int spriteOrder[numSprites];
+double spriteDistance[numSprites];
+
+void sortSprites(int* order, double* dist, int amount)
+{
+    std::vector<std::pair<double, int>> sprites(amount);
+    for (int i = 0; i < amount; i++) {
+        sprites[i].first = dist[i];
+        sprites[i].second = order[i];
+    }
+    std::sort(sprites.begin(), sprites.end());
+    // restore in reverse order to go from farthest to nearest
+    for (int i = 0; i < amount; i++) {
+        dist[i] = sprites[amount - i - 1].first;
+        order[i] = sprites[amount - i - 1].second;
+    }
+}
 
 void loadMap(const std::string& filename) {
     std::ifstream file(filename);
@@ -138,14 +177,6 @@ void setPixel(SDL_Surface* surface, int x, int y, Uint32 color) {
     }
 }
 
-SDL_Surface* loadTexture(const std::string& fileName) {
-    SDL_Surface* texture = SDL_LoadBMP(fileName.c_str());
-    if (!texture) {
-        std::cerr << "Failed to load texture: " << SDL_GetError() << std::endl;
-    }
-    return texture;
-}
-
 void Update(float deltaTime)
 {
     // Clear the screen
@@ -156,7 +187,7 @@ void Update(float deltaTime)
     SDL_FillRect(screenSurface, floorRect, SDL_MapRGB(screenSurface->format, 0x12, 0x12, 0x12));
     delete(floorRect);
 
-    // Raycast
+    // RAYCAST
     for (int x = 0; x < screenWidth; x++)
     {
         double cameraX = 2 * x / (double)screenWidth - 1;
@@ -239,8 +270,8 @@ void Update(float deltaTime)
         else           wallX = posX + perpWallDist * rayDirX;
         wallX -= floor((wallX));
 
-        float verticleScale = (float)lineHeight / (float)textureSize;
-        int sampleX = (int)floor((wallX * textureSize)) % textureSize;
+        float verticleScale = (float)lineHeight / (float)wallTextureSize;
+        int sampleX = (int)floor((wallX * wallTextureSize)) % wallTextureSize;
 
         for (int y = 0; y < lineHeight; y++)
         {
@@ -250,6 +281,62 @@ void Update(float deltaTime)
 
             SDL_Color rgb = getPixelColor(wallTextures[hit], sampleX, sampleY);
             setPixel(screenSurface, x, y + (renderHeight / 2) - (lineHeight / 2), SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
+        }
+
+        ZBuffer[x] = perpWallDist;
+    }
+
+    // SPRITECAST
+
+    // Sprite sorting
+    for (int i = 0; i < numSprites; i++)
+    {
+        spriteOrder[i] = i;
+        spriteDistance[i] = ((posX - sprite[i].x) * (posX - sprite[i].x) + (posY - sprite[i].y) * (posY - sprite[i].y)); //sqrt not taken, unneeded
+    }
+    sortSprites(spriteOrder, spriteDistance, numSprites);
+
+    for (int i = 0; i < numSprites; i++)
+    {
+        double spriteX = sprite[spriteOrder[i]].x - posX;
+        double spriteY = sprite[spriteOrder[i]].y - posY;
+
+        double invDet = 1.0 / (planeX * dirY - dirX * planeY);
+
+        double transformX = invDet * (dirY * spriteX - dirX * spriteY);
+        double transformY = invDet * (-planeY * spriteX + planeX * spriteY);
+
+        int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
+
+        int spriteHeight = abs(int(renderHeight / (transformY)));
+
+        int drawStartY = -spriteHeight / 2 + renderHeight / 2;
+        if (drawStartY < 0) drawStartY = 0;
+        int drawEndY = spriteHeight / 2 + renderHeight / 2;
+        if (drawEndY >= renderHeight) drawEndY = renderHeight - 1;
+
+        int spriteWidth = abs(int(renderHeight / (transformY)));
+        int drawStartX = -spriteWidth / 2 + spriteScreenX;
+        if (drawStartX < 0) drawStartX = 0;
+        int drawEndX = spriteWidth / 2 + spriteScreenX;
+        if (drawEndX >= screenWidth) drawEndX = screenWidth - 1;
+
+        for (int slice = drawStartX; slice < drawEndX; slice++)
+        {
+            int texX = int(256 * (slice - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth) / 256;
+
+            if (transformY > 0 && slice > 0 && slice < screenWidth && transformY < ZBuffer[slice])
+                for (int y = drawStartY; y < drawEndY; y++)
+                {
+                    int d = (y) * 256 - renderHeight * 128 + spriteHeight * 128; // 256 and 128 factors avoids using floats
+                    int texY = ((d * texHeight) / spriteHeight) / 256;
+                    SDL_Color color = getPixelColor(sprite[spriteOrder[i]].texture, texX / 2, texY / 2);
+                    
+                    if (!SDL_MapRGB(screenSurface->format, color.r, color.b, color.g) == 0x00)
+                    {
+                        setPixel(screenSurface, slice, y, SDL_MapRGB(screenSurface->format, color.r, color.g, color.b));
+                    }
+                }
         }
     }
 }
@@ -273,6 +360,17 @@ int main(int argc, char* args[])
         wallTextures[i] = SDL_LoadBMP(fileName.c_str());
         if (!wallTextures[i]) {
             std::cerr << "Failed to load wall texture! SDL_Error: " << SDL_GetError() << std::endl;
+        }
+        else {
+            printf(("Loaded " + fileName + "\n").c_str());
+        }
+    }
+    // Load sprite textures
+    for (int i = 0; i < numSprites; i++) {
+        std::string fileName = "sprites/sprite_" + std::to_string(sprite[i].texIndex) + ".bmp";
+        sprite[i].texture = SDL_LoadBMP(fileName.c_str());
+        if (!sprite[i].texture) {
+            std::cerr << "Failed to load sprite texture! SDL_Error: " << SDL_GetError() << std::endl;
         }
         else {
             printf(("Loaded " + fileName + "\n").c_str());
