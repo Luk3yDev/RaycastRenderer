@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 #define mapWidth 24
 #define mapHeight 24
@@ -135,6 +136,14 @@ void setPixel(SDL_Surface* surface, int x, int y, Uint32 color) {
     if (SDL_MUSTLOCK(surface)) {
         SDL_UnlockSurface(surface);
     }
+}
+
+SDL_Surface* loadTexture(const std::string& fileName) {
+    SDL_Surface* texture = SDL_LoadBMP(fileName.c_str());
+    if (!texture) {
+        std::cerr << "Failed to load texture: " << SDL_GetError() << std::endl;
+    }
+    return texture;
 }
 
 void Update(float deltaTime)
