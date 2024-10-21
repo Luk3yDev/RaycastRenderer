@@ -355,7 +355,7 @@ void Update(float deltaTime)
 
 int main(int argc, char* args[])
 {
-    loadMap("maps/25.rmap");
+    loadMap("maps/chamber.rmap");
 
     bool movingForward = false;
     bool movingBackward = false;
