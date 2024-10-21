@@ -8,8 +8,8 @@
 #include <sstream>
 #include <algorithm>
 
-#define mapWidth 24
-#define mapHeight 24
+#define mapWidth 25
+#define mapHeight 25
 #define screenWidth 640
 #define screenHeight 600
 #define renderHeight 480
@@ -37,7 +37,7 @@ struct Sprite
     double x;
     double y;
     int texIndex;
-    SDL_Surface* texture;  
+    SDL_Surface* texture;
 };
 
 #define numSprites 9
@@ -189,15 +189,15 @@ void setPixel(SDL_Surface* surface, int x, int y, Uint32 color) {
     }
 }
 
+SDL_Rect* floorRect = new SDL_Rect{ 0, renderHeight / 2, screenWidth, renderHeight / 2 };
+
 void Update(float deltaTime)
 {
     // Clear the screen
     SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
 
     // Create the floor
-    SDL_Rect* floorRect = new SDL_Rect{ 0, renderHeight / 2, screenWidth, renderHeight / 2 };
     SDL_FillRect(screenSurface, floorRect, SDL_MapRGB(screenSurface->format, 0x12, 0x12, 0x12));
-    delete(floorRect);
 
     // RAYCAST
     for (int x = 0; x < screenWidth; x++)
@@ -355,7 +355,7 @@ void Update(float deltaTime)
 
 int main(int argc, char* args[])
 {
-    loadMap("maps/chamber.rmap");
+    loadMap("maps/25.rmap");
 
     bool movingForward = false;
     bool movingBackward = false;
