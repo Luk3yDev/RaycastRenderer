@@ -37,11 +37,11 @@ struct Sprite
 {
     double x;
     double y;
-    int texIndex;
     SDL_Surface* texture;
 };
 
 int numSprites = 1;
+int spriteTypes = 6;
 
 Sprite sprite[255];
 SDL_Surface* spriteTextures[255];
@@ -50,11 +50,6 @@ double ZBuffer[screenWidth];
 
 int spriteOrder[255];
 double spriteDistance[255];
-
-// UI
-SDL_Texture* faceTexture;
-int faceTypes = 1;
-SDL_Rect* faceRect = new SDL_Rect{ 0, 0, screenWidth, screenHeight };
 
 void sortSprites(int* order, double* dist, int amount)
 {
@@ -81,7 +76,7 @@ void loadMap(const std::string& filename) {
         }
     }
     // Load sprite textures
-    for (int i = 1; i <= numSprites; i++) {
+    for (int i = 1; i <= spriteTypes; i++) {
         std::string fileName = "sprites/sprite_" + std::to_string(i) + ".bmp";
         spriteTextures[i] = SDL_LoadBMP(fileName.c_str());
         if (!spriteTextures[i]) {
@@ -143,12 +138,13 @@ void loadMap(const std::string& filename) {
             numSprites++;
 
             // Apply sprite data
-            sprite[x + y].texIndex = spriteValue;
-            sprite[x + y].y = x + 1.5f;
-            sprite[x + y].x = y + 0.5f;
-            sprite[x + y].texture = spriteTextures[spriteValue];
+            sprite[numSprites].y = x + 1.5f;
+            sprite[numSprites].x = y + 0.5f;
+            sprite[numSprites].texture = spriteTextures[spriteValue];
         }
     }
+
+    std::cout << numSprites;
 
     file.close();
     std::cout << "Loaded Map " << filename << "\n";
@@ -387,15 +383,10 @@ void Update(float deltaTime)
                 }
         }
     }
-
-    // UI
-    SDL_RenderCopy(renderer, faceTexture, nullptr, faceRect);
 }
 
 int main(int argc, char* args[])
 {
-    faceTexture = SDL_CreateTextureFromSurface(renderer, SDL_LoadBMP("face_0.bmp"));
-
     bool movingForward = false;
     bool movingBackward = false;
     bool turningRight = false;
