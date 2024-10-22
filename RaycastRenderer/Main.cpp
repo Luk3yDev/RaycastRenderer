@@ -67,6 +67,23 @@ void sortSprites(int* order, double* dist, int amount)
 }
 
 void loadMap(const std::string& filename) {
+    // Load wall textures
+    for (int i = 1; i < wallTypes; i++) {
+        std::string fileName = "walls/tile_" + std::to_string(i) + ".bmp";
+        wallTextures[i] = SDL_LoadBMP(fileName.c_str());
+        if (!wallTextures[i]) {
+            std::cerr << "Failed to load wall texture! SDL_Error: " << SDL_GetError() << std::endl;
+        }
+    }
+    // Load sprite textures
+    for (int i = 1; i <= numSprites; i++) {
+        std::string fileName = "sprites/sprite_" + std::to_string(i) + ".bmp";
+        spriteList[i].texture = SDL_LoadBMP(fileName.c_str());
+        if (!spriteList[i].texture) {
+            std::cerr << "Failed to load sprite texture! SDL_Error: " << SDL_GetError() << std::endl;
+        }
+    }
+
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Could not open file for reading.\n";
@@ -211,7 +228,7 @@ void Update(float deltaTime)
     SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
 
     // Create the floor
-    //SDL_FillRect(screenSurface, floorRect, SDL_MapRGB(screenSurface->format, 0x12, 0x12, 0x12));
+    SDL_FillRect(screenSurface, floorRect, SDL_MapRGB(screenSurface->format, 0x12, 0x12, 0x12));
 
     // RAYCAST
     for (int x = 0; x < screenWidth; x++)
@@ -378,23 +395,6 @@ int main(int argc, char* args[])
 
     SDL_Event event;
 
-    // Load wall textures
-    for (int i = 1; i < wallTypes; i++) {
-        std::string fileName = "walls/tile_" + std::to_string(i) + ".bmp";
-        wallTextures[i] = SDL_LoadBMP(fileName.c_str());
-        if (!wallTextures[i]) {
-            std::cerr << "Failed to load wall texture! SDL_Error: " << SDL_GetError() << std::endl;
-        }
-    }
-    // Load sprite textures
-    for (int i = 1; i <= numSprites; i++) {
-        std::string fileName = "sprites/sprite_" + std::to_string(i) + ".bmp";
-        spriteList[i].texture = SDL_LoadBMP(fileName.c_str());
-        if (!spriteList[i].texture) {
-            std::cerr << "Failed to load sprite texture! SDL_Error: " << SDL_GetError() << std::endl;
-        }
-    }
-
     // Init
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
@@ -416,7 +416,7 @@ int main(int argc, char* args[])
         }
     }
 
-    loadMap("maps/newmap.rmap");
+    loadMap("maps/coolmap.rmap");
 
     Uint64 NOW = SDL_GetPerformanceCounter();
     Uint64 LAST = 0;
