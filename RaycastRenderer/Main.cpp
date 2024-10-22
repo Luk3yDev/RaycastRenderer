@@ -77,7 +77,6 @@ void loadMap(const std::string& filename) {
     // Skip to the line containing the map data
     while (std::getline(file, line)) {
         if (line.find("int worldMap") != std::string::npos) {
-            // Start reading the actual map
             break;
         }
     }
@@ -99,6 +98,13 @@ void loadMap(const std::string& filename) {
         }
     }
 
+    // Skip to the line containing the sprite data
+    while (std::getline(file, line)) {
+        if (line.find("int spriteMap") != std::string::npos) {
+            break;
+        }
+    }
+
     for (int y = 0; y < mapHeight; y++) {
         std::getline(file, line);
         std::stringstream ss(line);
@@ -107,19 +113,17 @@ void loadMap(const std::string& filename) {
         // Expecting a line starting with a brace
         std::getline(ss, temp, '{');
         for (int x = 0; x < mapWidth; x++) {          
+            // Read until the next comma or closing brace
+            std::getline(ss, temp, (x < mapWidth - 1) ? ',' : '}');
+
             int spriteValue;
             ss >> spriteValue;
-            printf("%d", spriteValue);
             if (spriteValue == 0) continue;
 
             sprite[x + y].texIndex = spriteValue;
-            sprite[x + y].x = x + 0.5f;
-            sprite[x + y].y = y + 0.5f;
+            sprite[x + y].y = x + 1.5f;
+            sprite[x + y].x = y + 0.5f;
             sprite[x + y].texture = spriteList[spriteValue].texture;
-
-            // Read until the next comma or closing brace
-            std::getline(ss, temp, (x < mapWidth - 1) ? ',' : '}');
-            
         }
     }
 
