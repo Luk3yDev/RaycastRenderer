@@ -11,7 +11,7 @@
 #define mapWidth 25
 #define mapHeight 25
 #define screenWidth 640
-#define screenHeight 600
+#define screenHeight 480
 #define renderHeight 480
 
 #define texWidth 64
@@ -143,8 +143,6 @@ void loadMap(const std::string& filename) {
             sprite[numSprites].texture = spriteTextures[spriteValue];
         }
     }
-
-    std::cout << numSprites;
 
     file.close();
     std::cout << "Loaded Map " << filename << "\n";
