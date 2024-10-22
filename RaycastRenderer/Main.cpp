@@ -20,6 +20,7 @@
 int worldMap[mapWidth][mapHeight];
 
 SDL_Surface* screenSurface = NULL;
+SDL_Renderer* renderer = NULL;
 
 // Player variables
 double posX = 2, posY = 2;
@@ -49,6 +50,11 @@ double ZBuffer[screenWidth];
 
 int spriteOrder[255];
 double spriteDistance[255];
+
+// UI
+SDL_Texture* faceTexture;
+int faceTypes = 1;
+SDL_Rect* faceRect = new SDL_Rect{ 0, 0, screenWidth, screenHeight };
 
 void sortSprites(int* order, double* dist, int amount)
 {
@@ -338,7 +344,6 @@ void Update(float deltaTime)
         spriteDistance[i] = ((posX - sprite[i].x) * (posX - sprite[i].x) + (posY - sprite[i].y) * (posY - sprite[i].y)); //sqrt not taken, unneeded
     }
     sortSprites(spriteOrder, spriteDistance, numSprites);
-
     for (int i = 0; i < numSprites; i++)
     {
         double spriteX = sprite[spriteOrder[i]].x - posX;
@@ -382,17 +387,21 @@ void Update(float deltaTime)
                 }
         }
     }
+
+    // UI
+    SDL_RenderCopy(renderer, faceTexture, nullptr, faceRect);
 }
 
 int main(int argc, char* args[])
 {
+    faceTexture = SDL_CreateTextureFromSurface(renderer, SDL_LoadBMP("face_0.bmp"));
+
     bool movingForward = false;
     bool movingBackward = false;
     bool turningRight = false;
     bool turningLeft = false;
 
     SDL_Window* window = NULL;
-
     SDL_Event event;
 
     // Init
@@ -410,6 +419,8 @@ int main(int argc, char* args[])
         else
         {
             screenSurface = SDL_GetWindowSurface(window);
+            renderer = SDL_GetRenderer(window);
+            
             SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
 
             SDL_UpdateWindowSurface(window);
