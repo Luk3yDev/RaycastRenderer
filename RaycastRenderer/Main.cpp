@@ -40,11 +40,10 @@ struct Sprite
     SDL_Surface* texture;
 };
 
-#define numSprites 6
+int numSprites = 1;
 
-int spriteMap[mapWidth][mapHeight];
 Sprite sprite[255];
-Sprite spriteList[numSprites];
+SDL_Surface* spriteTextures[255];
 
 double ZBuffer[screenWidth];
 
@@ -78,8 +77,8 @@ void loadMap(const std::string& filename) {
     // Load sprite textures
     for (int i = 1; i <= numSprites; i++) {
         std::string fileName = "sprites/sprite_" + std::to_string(i) + ".bmp";
-        spriteList[i].texture = SDL_LoadBMP(fileName.c_str());
-        if (!spriteList[i].texture) {
+        spriteTextures[i] = SDL_LoadBMP(fileName.c_str());
+        if (!spriteTextures[i]) {
             std::cerr << "Failed to load sprite texture! SDL_Error: " << SDL_GetError() << std::endl;
         }
     }
@@ -132,15 +131,16 @@ void loadMap(const std::string& filename) {
         for (int x = 0; x < mapWidth; x++) {          
             // Read until the next comma or closing brace
             std::getline(ss, temp, (x < mapWidth - 1) ? ',' : '}');
-
             int spriteValue;
             ss >> spriteValue;
             if (spriteValue == 0) continue;
+            numSprites++;
 
+            // Apply sprite data
             sprite[x + y].texIndex = spriteValue;
             sprite[x + y].y = x + 1.5f;
             sprite[x + y].x = y + 0.5f;
-            sprite[x + y].texture = spriteList[spriteValue].texture;
+            sprite[x + y].texture = spriteTextures[spriteValue];
         }
     }
 
@@ -332,14 +332,14 @@ void Update(float deltaTime)
     // SPRITECAST
 
     // Sprite sorting
-    for (int i = 0; i < 255; i++)
+    for (int i = 0; i < numSprites; i++)
     {
         spriteOrder[i] = i;
         spriteDistance[i] = ((posX - sprite[i].x) * (posX - sprite[i].x) + (posY - sprite[i].y) * (posY - sprite[i].y)); //sqrt not taken, unneeded
     }
     sortSprites(spriteOrder, spriteDistance, numSprites);
 
-    for (int i = 0; i < 255; i++)
+    for (int i = 0; i < numSprites; i++)
     {
         double spriteX = sprite[spriteOrder[i]].x - posX;
         double spriteY = sprite[spriteOrder[i]].y - posY;
