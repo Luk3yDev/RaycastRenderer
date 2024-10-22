@@ -40,25 +40,11 @@ struct Sprite
     SDL_Surface* texture;
 };
 
-#define numSprites 9
+#define numSprites 10
 
-Sprite sprite[numSprites] =
-{
-    // Ceiling lights
-    {2.5, 2.5, 0},
-    {2.5, 4.5, 0},
-    {2.5, 6.5, 0},
-    {2.5, 8.5, 0},
-    {2.5, 10.5, 0},
-
-    // Healthpacks
-    {2.5, 11.5, 2},
-    {5.5, 11.5, 2},
-    
-    // Dudes
-    {4.5, 8.5, 4},
-    {6.5, 8.5, 5},
-};
+const int spriteTypes = 6;
+int spriteMap[mapWidth][mapHeight];
+Sprite sprite[numSprites];
 
 double ZBuffer[screenWidth];
 
@@ -104,9 +90,28 @@ void loadMap(const std::string& filename) {
         // Expecting a line starting with a brace
         std::getline(ss, temp, '{');
         for (int x = 0; x < mapWidth; x++) {
-            int tileValue;
-            ss >> tileValue;
-            worldMap[y][x] = tileValue;
+            int mapValue;
+            ss >> mapValue;
+            worldMap[y][x] = mapValue;
+
+            // Read until the next comma or closing brace
+            std::getline(ss, temp, (x < mapWidth - 1) ? ',' : '}');
+        }
+    }
+
+    for (int y = 0; y < mapHeight; y++) {
+        std::getline(file, line);
+        std::stringstream ss(line);
+        std::string temp;
+
+        // Expecting a line starting with a brace
+        std::getline(ss, temp, '{');
+        for (int x = 0; x < mapWidth; x++) {
+            int spriteValue;
+            ss >> spriteValue;
+            sprite[x + y].texIndex = spriteValue;
+            sprite[x + y].x = x + 0.5f;
+            sprite[x + y].y = y + 0.5f;
 
             // Read until the next comma or closing brace
             std::getline(ss, temp, (x < mapWidth - 1) ? ',' : '}');
@@ -355,7 +360,7 @@ void Update(float deltaTime)
 
 int main(int argc, char* args[])
 {
-    loadMap("maps/chamber.rmap");
+    loadMap("maps/newmap.rmap");
 
     bool movingForward = false;
     bool movingBackward = false;
@@ -375,7 +380,7 @@ int main(int argc, char* args[])
         }
     }
     // Load sprite textures
-    for (int i = 0; i < numSprites; i++) {
+    for (int i = 1; i < spriteTypes; i++) {
         std::string fileName = "sprites/sprite_" + std::to_string(sprite[i].texIndex) + ".bmp";
         sprite[i].texture = SDL_LoadBMP(fileName.c_str());
         if (!sprite[i].texture) {
