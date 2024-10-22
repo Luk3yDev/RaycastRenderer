@@ -40,16 +40,16 @@ struct Sprite
     SDL_Surface* texture;
 };
 
-#define numSprites 10
+#define numSprites 6
 
-const int spriteTypes = 6;
 int spriteMap[mapWidth][mapHeight];
-Sprite sprite[numSprites];
+Sprite sprite[255];
+Sprite spriteList[numSprites];
 
 double ZBuffer[screenWidth];
 
-int spriteOrder[numSprites];
-double spriteDistance[numSprites];
+int spriteOrder[255];
+double spriteDistance[255];
 
 void sortSprites(int* order, double* dist, int amount)
 {
@@ -106,15 +106,20 @@ void loadMap(const std::string& filename) {
 
         // Expecting a line starting with a brace
         std::getline(ss, temp, '{');
-        for (int x = 0; x < mapWidth; x++) {
+        for (int x = 0; x < mapWidth; x++) {          
             int spriteValue;
             ss >> spriteValue;
+            printf("%d", spriteValue);
+            if (spriteValue == 0) continue;
+
             sprite[x + y].texIndex = spriteValue;
             sprite[x + y].x = x + 0.5f;
             sprite[x + y].y = y + 0.5f;
+            sprite[x + y].texture = spriteList[spriteValue].texture;
 
             // Read until the next comma or closing brace
             std::getline(ss, temp, (x < mapWidth - 1) ? ',' : '}');
+            
         }
     }
 
@@ -202,7 +207,7 @@ void Update(float deltaTime)
     SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
 
     // Create the floor
-    SDL_FillRect(screenSurface, floorRect, SDL_MapRGB(screenSurface->format, 0x12, 0x12, 0x12));
+    //SDL_FillRect(screenSurface, floorRect, SDL_MapRGB(screenSurface->format, 0x12, 0x12, 0x12));
 
     // RAYCAST
     for (int x = 0; x < screenWidth; x++)
@@ -306,14 +311,14 @@ void Update(float deltaTime)
     // SPRITECAST
 
     // Sprite sorting
-    for (int i = 0; i < numSprites; i++)
+    for (int i = 0; i < 255; i++)
     {
         spriteOrder[i] = i;
         spriteDistance[i] = ((posX - sprite[i].x) * (posX - sprite[i].x) + (posY - sprite[i].y) * (posY - sprite[i].y)); //sqrt not taken, unneeded
     }
     sortSprites(spriteOrder, spriteDistance, numSprites);
 
-    for (int i = 0; i < numSprites; i++)
+    for (int i = 0; i < 255; i++)
     {
         double spriteX = sprite[spriteOrder[i]].x - posX;
         double spriteY = sprite[spriteOrder[i]].y - posY;
@@ -360,8 +365,6 @@ void Update(float deltaTime)
 
 int main(int argc, char* args[])
 {
-    loadMap("maps/newmap.rmap");
-
     bool movingForward = false;
     bool movingBackward = false;
     bool turningRight = false;
@@ -380,10 +383,10 @@ int main(int argc, char* args[])
         }
     }
     // Load sprite textures
-    for (int i = 1; i < spriteTypes; i++) {
-        std::string fileName = "sprites/sprite_" + std::to_string(sprite[i].texIndex) + ".bmp";
-        sprite[i].texture = SDL_LoadBMP(fileName.c_str());
-        if (!sprite[i].texture) {
+    for (int i = 1; i <= numSprites; i++) {
+        std::string fileName = "sprites/sprite_" + std::to_string(i) + ".bmp";
+        spriteList[i].texture = SDL_LoadBMP(fileName.c_str());
+        if (!spriteList[i].texture) {
             std::cerr << "Failed to load sprite texture! SDL_Error: " << SDL_GetError() << std::endl;
         }
     }
@@ -408,6 +411,8 @@ int main(int argc, char* args[])
             SDL_UpdateWindowSurface(window);
         }
     }
+
+    loadMap("maps/newmap.rmap");
 
     Uint64 NOW = SDL_GetPerformanceCounter();
     Uint64 LAST = 0;
