@@ -53,6 +53,7 @@ double spriteDistance[255];
 
 int numGuns = 1;
 SDL_Surface* gunTextures[255];
+SDL_Surface* gun;
 
 void sortSprites(int* order, double* dist, int amount)
 {
@@ -234,6 +235,15 @@ void loadUITextures()
     }
 }
 
+void renderUI()
+{
+    Uint32 colorKey = SDL_MapRGB(gun->format, 0x00, 0x00, 0x00); // Black color
+    SDL_SetColorKey(gun, SDL_TRUE, colorKey);
+
+    SDL_Rect overlayRect = { screenWidth / 2 - 128, 256, 0, 0 };
+    SDL_BlitSurface(gun, NULL, screenSurface, &overlayRect);
+}
+
 SDL_Rect* floorRect = new SDL_Rect{ 0, renderHeight / 2, screenWidth, renderHeight / 2 };
 
 void Update(float deltaTime)
@@ -396,11 +406,7 @@ void Update(float deltaTime)
         }
     }
 
-    Uint32 colorKey = SDL_MapRGB(gunTextures[0]->format, 0x00, 0x00, 0x00); // Black color
-    SDL_SetColorKey(gunTextures[0], SDL_TRUE, colorKey);
-
-    SDL_Rect overlayRect = { screenWidth/2, 400, 0, 0 };
-    SDL_BlitSurface(gunTextures[0], NULL, screenSurface, &overlayRect);
+    renderUI();
 
     SDL_UpdateWindowSurface(window);
 }
