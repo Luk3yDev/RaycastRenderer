@@ -20,7 +20,6 @@
 int worldMap[mapWidth][mapHeight];
 
 SDL_Surface* screenSurface = NULL;
-SDL_Renderer* renderer = NULL;
 
 // Player variables
 double posX = 2, posY = 2;
@@ -408,7 +407,6 @@ int main(int argc, char* args[])
         else
         {
             screenSurface = SDL_GetWindowSurface(window);
-            renderer = SDL_GetRenderer(window);
             
             SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
 
