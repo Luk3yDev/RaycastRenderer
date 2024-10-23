@@ -19,6 +19,7 @@
 
 int worldMap[mapWidth][mapHeight];
 
+SDL_Window* window = NULL;
 SDL_Surface* screenSurface = NULL;
 
 // Player variables
@@ -49,6 +50,9 @@ double ZBuffer[screenWidth];
 
 int spriteOrder[255];
 double spriteDistance[255];
+
+int numGuns = 1;
+SDL_Surface* gunTextures[255];
 
 void sortSprites(int* order, double* dist, int amount)
 {
@@ -219,6 +223,17 @@ void setPixel(SDL_Surface* surface, int x, int y, Uint32 color) {
     }
 }
 
+void loadUITextures()
+{
+    for (int i = 0; i < numGuns*2; i++) {
+        std::string fileName = "ui/gun_" + std::to_string(i) + ".bmp";
+        gunTextures[i] = SDL_LoadBMP(fileName.c_str());
+        if (!gunTextures[i]) {
+            std::cerr << "Failed to load UI texture! SDL_Error: " << SDL_GetError() << std::endl;
+        }
+    }
+}
+
 SDL_Rect* floorRect = new SDL_Rect{ 0, renderHeight / 2, screenWidth, renderHeight / 2 };
 
 void Update(float deltaTime)
@@ -380,6 +395,14 @@ void Update(float deltaTime)
                 }
         }
     }
+
+    Uint32 colorKey = SDL_MapRGB(gunTextures[0]->format, 0x00, 0x00, 0x00); // Black color
+    SDL_SetColorKey(gunTextures[0], SDL_TRUE, colorKey);
+
+    SDL_Rect overlayRect = { screenWidth/2, 400, 0, 0 };
+    SDL_BlitSurface(gunTextures[0], NULL, screenSurface, &overlayRect);
+
+    SDL_UpdateWindowSurface(window);
 }
 
 int main(int argc, char* args[])
@@ -388,8 +411,7 @@ int main(int argc, char* args[])
     bool movingBackward = false;
     bool turningRight = false;
     bool turningLeft = false;
-
-    SDL_Window* window = NULL;
+    
     SDL_Event event;
 
     // Init
@@ -415,6 +437,7 @@ int main(int argc, char* args[])
     }
 
     loadMap("maps/coolmap.rmap");
+    loadUITextures();
 
     Uint64 NOW = SDL_GetPerformanceCounter();
     Uint64 LAST = 0;
@@ -429,8 +452,6 @@ int main(int argc, char* args[])
         deltaTime = (double)((NOW - LAST) * 1 / (double)SDL_GetPerformanceFrequency());
 
         Update(deltaTime);
-
-        SDL_UpdateWindowSurface(window);
 
         double oldDirX = dirX;
         double oldPlaneX = planeX;
