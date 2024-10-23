@@ -11,7 +11,7 @@
 #define mapWidth 25
 #define mapHeight 25
 #define screenWidth 640
-#define screenHeight 480
+#define screenHeight 640
 #define renderHeight 480
 
 #define texWidth 64
@@ -53,7 +53,9 @@ double spriteDistance[255];
 
 int numGuns = 1;
 SDL_Surface* gunTextures[255];
-SDL_Surface* gun;
+int gun = 0;
+int gunOffsetX = 0;
+int gunOffsetY = 0;
 
 void sortSprites(int* order, double* dist, int amount)
 {
@@ -237,11 +239,11 @@ void loadUITextures()
 
 void renderUI()
 {
-    Uint32 colorKey = SDL_MapRGB(gun->format, 0x00, 0x00, 0x00); // Black color
-    SDL_SetColorKey(gun, SDL_TRUE, colorKey);
+    Uint32 colorKey = SDL_MapRGB(gunTextures[gun]->format, 0x00, 0x00, 0x00); // Black color
+    SDL_SetColorKey(gunTextures[gun], SDL_TRUE, colorKey);
 
-    SDL_Rect overlayRect = { screenWidth / 2 - 128, 256, 0, 0 };
-    SDL_BlitSurface(gun, NULL, screenSurface, &overlayRect);
+    SDL_Rect overlayRect = { screenWidth / 2 - 128 + gunOffsetX, 256 + gunOffsetY, 0, 0 };
+    SDL_BlitSurface(gunTextures[gun], NULL, screenSurface, &overlayRect);
 }
 
 SDL_Rect* floorRect = new SDL_Rect{ 0, renderHeight / 2, screenWidth, renderHeight / 2 };
