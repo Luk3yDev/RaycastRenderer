@@ -42,7 +42,7 @@ struct Sprite
 };
 
 int numSprites = 1;
-int spriteTypes = 6;
+int spriteTypes = 7;
 
 Sprite sprite[255];
 SDL_Surface* spriteTextures[255];
@@ -312,6 +312,51 @@ void shoot()
         gunTexture = 1;
         Mix_PlayChannel(-1, fire, 0);
         canFire = false;
+
+        double rayDirX = dirX;
+        double rayDirY = dirY;
+        double rayPosX = posX;
+        double rayPosY = posY;
+
+        int hit = 0;
+        int istep = 0;
+
+        while (hit == 0)
+        {
+            rayPosX += rayDirX;
+            rayPosY += rayDirY;
+
+            for (int i = 0; i < numSprites; i++)
+            {
+                /*
+                std::cout << (int)rayPosX;
+                std::cout << " - ";
+                std::cout << sprite[i].x - 0.5f;
+
+                std::cout << ", ";
+
+                std::cout << (int)rayPosY;
+                std::cout << " - ";
+                std::cout << sprite[i].y - 0.5f;
+                std::cout << "\n";
+                */
+
+                if ((int)rayPosX == sprite[i].x - 0.5f && (int)rayPosY == sprite[i].y - 0.5f)
+                {
+                    printf("Hit sprite\n");
+                    hit = 1;
+                }
+            }
+            if (worldMap[(int)floor(rayPosX)][(int)floor(rayPosY)] != 0)
+            {
+                //worldMap[(int)floor(rayPosX)][(int)floor(rayPosY)] = 0;
+                printf("Hit wall\n");
+                hit = 1;
+            }
+                
+            if (istep > 100) hit = 1;
+            istep++;
+        }
     }
 }
 
