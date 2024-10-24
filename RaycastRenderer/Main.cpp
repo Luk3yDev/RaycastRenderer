@@ -54,8 +54,10 @@ double spriteDistance[255];
 int numGuns = 1;
 SDL_Surface* gunTextures[255];
 int gun = 0;
+
 int gunOffsetX = 0;
 int gunOffsetY = 0;
+bool gunSwayRight = true;
 
 void sortSprites(int* order, double* dist, int amount)
 {
@@ -237,13 +239,19 @@ void loadUITextures()
     }
 }
 
+SDL_Rect* UIBase = new SDL_Rect{ 0, renderHeight, screenWidth, screenHeight - renderHeight };
 void renderUI()
-{
+{   
     Uint32 colorKey = SDL_MapRGB(gunTextures[gun]->format, 0x00, 0x00, 0x00); // Black color
     SDL_SetColorKey(gunTextures[gun], SDL_TRUE, colorKey);
 
-    SDL_Rect overlayRect = { screenWidth / 2 - 128 + gunOffsetX, 256 + gunOffsetY, 0, 0 };
+    //gunOffsetY = abs(gunOffsetX / 3);
+    gunOffsetY = ((1.0f/200.0f) * (gunOffsetX * gunOffsetX));
+
+    SDL_Rect overlayRect = { screenWidth / 2 - (192/2) + gunOffsetX, 300 + gunOffsetY, 0, 0 };
     SDL_BlitSurface(gunTextures[gun], NULL, screenSurface, &overlayRect);
+
+    SDL_FillRect(screenSurface, UIBase, 0x00);
 }
 
 SDL_Rect* floorRect = new SDL_Rect{ 0, renderHeight / 2, screenWidth, renderHeight / 2 };
@@ -511,13 +519,36 @@ int main(int argc, char* args[])
             }
             if (event.type == SDL_QUIT) done = true;
         }
-
+        
         // Applying input
         if (movingForward)
         {
             if (worldMap[int(posX + dirX * moveSpeed * deltaTime)][int(posY)] == false) posX += dirX * moveSpeed * deltaTime;
             if (worldMap[int(posX)][int(posY + dirY * moveSpeed * deltaTime)] == false) posY += dirY * moveSpeed * deltaTime;
+
+            if (gunSwayRight)
+            {
+                gunOffsetX += 1;
+                if (gunOffsetX > 80)
+                {
+                    gunSwayRight = false;
+                }
+            }
+            else
+            {
+                gunOffsetX -= 1;
+                if (gunOffsetX < -80)
+                {
+                    gunSwayRight = true;
+                }
+            }           
+        }   
+        else
+        {
+            if (gunOffsetX > 0) gunOffsetX -= 1;
+            if (gunOffsetX < 0) gunOffsetX += 1;
         }
+
         if (movingBackward)
         {
             if (worldMap[int(posX - dirX * moveSpeed * deltaTime)][int(posY)] == false) posX -= dirX * moveSpeed * deltaTime;
@@ -536,7 +567,7 @@ int main(int argc, char* args[])
             dirY = oldDirX * sin(rotSpeed * deltaTime) + dirY * cos(rotSpeed * deltaTime);
             planeX = planeX * cos(rotSpeed * deltaTime) - planeY * sin(rotSpeed * deltaTime);
             planeY = oldPlaneX * sin(rotSpeed * deltaTime) + planeY * cos(rotSpeed * deltaTime);
-        }
+        }   
     }
 
     SDL_DestroyWindow(window);
