@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <SDL_mixer.h>
 
 #define mapWidth 25
 #define mapHeight 25
@@ -58,6 +59,13 @@ int gunTexture = 0;
 int gunOffsetX = 0;
 int gunOffsetY = 0;
 bool gunSwayRight = true;
+
+bool canFire = true;
+float fireCooldown = 0.5f;
+
+// AUDIO
+Mix_Music* music = NULL;
+Mix_Chunk* fire = NULL;
 
 void sortSprites(int* order, double* dist, int amount)
 {
@@ -228,14 +236,33 @@ void setPixel(SDL_Surface* surface, int x, int y, Uint32 color) {
     }
 }
 
-void loadUITextures()
+void loadMedia()
 {
+    // Gun UI
     for (int i = 0; i < numGuns*2; i++) {
         std::string fileName = "ui/gun_" + std::to_string(i) + ".bmp";
         gunTextures[i] = SDL_LoadBMP(fileName.c_str());
         if (!gunTextures[i]) {
             std::cerr << "Failed to load UI texture! SDL_Error: " << SDL_GetError() << std::endl;
         }
+    }
+
+    // Audio
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+    {
+        printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+    }
+
+    music = Mix_LoadMUS("audio/music/e1m1.wav");
+    if (music == NULL)
+    {
+        printf("Failed to load music! SDL_mixer Error: %s\n", Mix_GetError());
+    }
+
+    fire = Mix_LoadWAV("audio/pew.wav");
+    if (fire == NULL)
+    {
+        printf("Failed to load sound effect! SDL_mixer Error: %s\n", Mix_GetError());
     }
 }
 
@@ -256,7 +283,12 @@ void renderUI()
 
 void shoot()
 {
-    gunTexture = 1;
+    if (canFire) 
+    {
+        gunTexture = 1;
+        Mix_PlayChannel(-1, fire, 0);
+        canFire = false;
+    }
 }
 
 SDL_Rect* floorRect = new SDL_Rect{ 0, renderHeight / 2, screenWidth, renderHeight / 2 };
@@ -460,7 +492,9 @@ int main(int argc, char* args[])
     }
 
     loadMap("maps/coolmap.rmap");
-    loadUITextures();
+    loadMedia();
+
+    Mix_PlayMusic(music, -1);
 
     Uint64 NOW = SDL_GetPerformanceCounter();
     Uint64 LAST = 0;
@@ -539,8 +573,7 @@ int main(int argc, char* args[])
         {
             if (worldMap[int(posX + dirX * moveSpeed * deltaTime)][int(posY)] == false) posX += dirX * moveSpeed * deltaTime;
             if (worldMap[int(posX)][int(posY + dirY * moveSpeed * deltaTime)] == false) posY += dirY * moveSpeed * deltaTime; 
-        }          
-
+        }
         if (movingBackward)
         {
             if (worldMap[int(posX - dirX * moveSpeed * deltaTime)][int(posY)] == false) posX -= dirX * moveSpeed * deltaTime;
@@ -560,7 +593,6 @@ int main(int argc, char* args[])
             planeX = planeX * cos(rotSpeed * deltaTime) - planeY * sin(rotSpeed * deltaTime);
             planeY = oldPlaneX * sin(rotSpeed * deltaTime) + planeY * cos(rotSpeed * deltaTime);
         }
-
         if (moving)
         {
             if (gunSwayRight)
@@ -584,6 +616,14 @@ int main(int argc, char* args[])
         {
             if (gunOffsetX > 0) gunOffsetX -= deltaTime;
             if (gunOffsetX < 0) gunOffsetX += deltaTime;
+        }
+
+        if (!canFire) fireCooldown -= deltaTime * 0.005f;
+        if (fireCooldown <= 0)
+        {
+            canFire = true;
+            gunTexture = 0;
+            fireCooldown = 0.5f;
         }
     }
 
