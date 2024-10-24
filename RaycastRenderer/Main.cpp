@@ -53,7 +53,7 @@ double spriteDistance[255];
 
 int numGuns = 1;
 SDL_Surface* gunTextures[255];
-int gun = 0;
+int gunTexture = 0;
 
 int gunOffsetX = 0;
 int gunOffsetY = 0;
@@ -242,16 +242,22 @@ void loadUITextures()
 SDL_Rect* UIBase = new SDL_Rect{ 0, renderHeight, screenWidth, screenHeight - renderHeight };
 void renderUI()
 {   
-    Uint32 colorKey = SDL_MapRGB(gunTextures[gun]->format, 0x00, 0x00, 0x00); // Black color
-    SDL_SetColorKey(gunTextures[gun], SDL_TRUE, colorKey);
+    Uint32 colorKey = SDL_MapRGB(gunTextures[gunTexture]->format, 0x00, 0x00, 0x00); // Black color
+    SDL_SetColorKey(gunTextures[gunTexture], SDL_TRUE, colorKey);
 
     //gunOffsetY = abs(gunOffsetX / 3);
     gunOffsetY = ((1.0f/200.0f) * (gunOffsetX * gunOffsetX));
 
     SDL_Rect overlayRect = { screenWidth / 2 - (192/2) + gunOffsetX, 300 + gunOffsetY, 0, 0 };
-    SDL_BlitSurface(gunTextures[gun], NULL, screenSurface, &overlayRect);
+    SDL_BlitSurface(gunTextures[gunTexture], NULL, screenSurface, &overlayRect);
 
     SDL_FillRect(screenSurface, UIBase, 0x00);
+}
+
+void shoot()
+{
+    gunTexture = 1;
+    
 }
 
 SDL_Rect* floorRect = new SDL_Rect{ 0, renderHeight / 2, screenWidth, renderHeight / 2 };
@@ -490,6 +496,9 @@ int main(int argc, char* args[])
                 case SDLK_DOWN:
                     movingBackward = true;
                     break;
+                case SDLK_LCTRL:
+                    shoot();
+                    break;
                 case SDLK_ESCAPE:
                     done = true;
                     break;
@@ -541,7 +550,7 @@ int main(int argc, char* args[])
                 {
                     gunSwayRight = true;
                 }
-            }           
+            }
         }   
         else
         {
