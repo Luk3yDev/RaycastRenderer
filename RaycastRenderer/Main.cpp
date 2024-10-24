@@ -26,8 +26,8 @@ SDL_Surface* screenSurface = NULL;
 double posX = 2, posY = 2;
 double dirX = -1, dirY = 0;
 double planeX = 0, planeY = 0.66;
-double moveSpeed = 5.0f;
-double rotSpeed = 2.2f;
+double moveSpeed = 0.006f;
+double rotSpeed = 0.002f;
 
 const int wallTextureSize = 64;
 const int wallTypes = 9; // Must always be 1 higher than the actual amount of tile textures, as air (0) counts as a wall type
@@ -257,7 +257,6 @@ void renderUI()
 void shoot()
 {
     gunTexture = 1;
-    
 }
 
 SDL_Rect* floorRect = new SDL_Rect{ 0, renderHeight / 2, screenWidth, renderHeight / 2 };
@@ -433,6 +432,8 @@ int main(int argc, char* args[])
     bool movingBackward = false;
     bool turningRight = false;
     bool turningLeft = false;
+
+    bool moving = false;
     
     SDL_Event event;
 
@@ -471,7 +472,7 @@ int main(int argc, char* args[])
     {
         LAST = NOW;
         NOW = SDL_GetPerformanceCounter();
-        deltaTime = (double)((NOW - LAST) * 1 / (double)SDL_GetPerformanceFrequency());
+        deltaTime = ((NOW - LAST) * 1000 / (double)SDL_GetPerformanceFrequency());
 
         Update(deltaTime);
 
@@ -492,9 +493,11 @@ int main(int argc, char* args[])
                     break;
                 case SDLK_UP:
                     movingForward = true;
+                    moving = true;
                     break;
                 case SDLK_DOWN:
                     movingBackward = true;
+                    moving = true;
                     break;
                 case SDLK_LCTRL:
                     shoot();
@@ -518,9 +521,11 @@ int main(int argc, char* args[])
                     break;
                 case SDLK_UP:
                     movingForward = false;
+                    moving = false;
                     break;
                 case SDLK_DOWN:
                     movingBackward = false;
+                    moving = false;
                     break;
                 default:
                     break;
@@ -533,30 +538,8 @@ int main(int argc, char* args[])
         if (movingForward)
         {
             if (worldMap[int(posX + dirX * moveSpeed * deltaTime)][int(posY)] == false) posX += dirX * moveSpeed * deltaTime;
-            if (worldMap[int(posX)][int(posY + dirY * moveSpeed * deltaTime)] == false) posY += dirY * moveSpeed * deltaTime;
-
-            if (gunSwayRight)
-            {
-                gunOffsetX += 1;
-                if (gunOffsetX > 80)
-                {
-                    gunSwayRight = false;
-                }
-            }
-            else
-            {
-                gunOffsetX -= 1;
-                if (gunOffsetX < -80)
-                {
-                    gunSwayRight = true;
-                }
-            }
-        }   
-        else
-        {
-            if (gunOffsetX > 0) gunOffsetX -= 1;
-            if (gunOffsetX < 0) gunOffsetX += 1;
-        }
+            if (worldMap[int(posX)][int(posY + dirY * moveSpeed * deltaTime)] == false) posY += dirY * moveSpeed * deltaTime; 
+        }          
 
         if (movingBackward)
         {
@@ -576,7 +559,32 @@ int main(int argc, char* args[])
             dirY = oldDirX * sin(rotSpeed * deltaTime) + dirY * cos(rotSpeed * deltaTime);
             planeX = planeX * cos(rotSpeed * deltaTime) - planeY * sin(rotSpeed * deltaTime);
             planeY = oldPlaneX * sin(rotSpeed * deltaTime) + planeY * cos(rotSpeed * deltaTime);
-        }   
+        }
+
+        if (moving)
+        {
+            if (gunSwayRight)
+            {
+                gunOffsetX += deltaTime;
+                if (gunOffsetX > 80)
+                {
+                    gunSwayRight = false;
+                }
+            }
+            else
+            {
+                gunOffsetX -= deltaTime;
+                if (gunOffsetX < -80)
+                {
+                    gunSwayRight = true;
+                }
+            }
+        }
+        else
+        {
+            if (gunOffsetX > 0) gunOffsetX -= deltaTime;
+            if (gunOffsetX < 0) gunOffsetX += deltaTime;
+        }
     }
 
     SDL_DestroyWindow(window);
