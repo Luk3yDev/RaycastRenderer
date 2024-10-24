@@ -642,7 +642,7 @@ int main(int argc, char* args[])
             if (gunOffsetX < 0) gunOffsetX += deltaTime;
         }
 
-        if (!canFire) fireCooldown -= deltaTime * 0.005f;
+        if (!canFire) fireCooldown -= deltaTime * 0.002f;
         if (fireCooldown <= 0)
         {
             canFire = true;
