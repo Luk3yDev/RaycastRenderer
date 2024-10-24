@@ -328,7 +328,7 @@ void shoot()
             {
                 if ((int)rayPosX == sprite[i].x - 0.5f && (int)rayPosY == sprite[i].y - 0.5f)
                 {
-                    sprite[i].texture = spriteTextures[8];
+                    if (sprite[i].texture == spriteTextures[1]) sprite[i].texture = spriteTextures[8];
                     printf("Hit sprite\n");
                     hit = 1;
                 }
