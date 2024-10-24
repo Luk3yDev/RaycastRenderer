@@ -42,7 +42,7 @@ struct Sprite
 };
 
 int numSprites = 1;
-int spriteTypes = 7;
+int spriteTypes = 8;
 
 Sprite sprite[255];
 SDL_Surface* spriteTextures[255];
@@ -283,7 +283,6 @@ void loadMedia()
     }
 }
 
-//SDL_Rect* UIBase = new SDL_Rect{ 0, renderHeight, screenWidth, screenHeight - renderHeight };
 void renderUI()
 {   
     Uint32 colorKey = SDL_MapRGB(gunTextures[gunTexture]->format, 0x00, 0x00, 0x00); // Black color
@@ -310,8 +309,7 @@ void shoot()
     if (canFire) 
     {
         gunTexture = 1;
-        Mix_PlayChannel(-1, fire, 0);
-        canFire = false;
+        Mix_PlayChannel(-1, fire, 0); 
 
         double rayDirX = dirX;
         double rayDirY = dirY;
@@ -328,21 +326,9 @@ void shoot()
 
             for (int i = 0; i < numSprites; i++)
             {
-                /*
-                std::cout << (int)rayPosX;
-                std::cout << " - ";
-                std::cout << sprite[i].x - 0.5f;
-
-                std::cout << ", ";
-
-                std::cout << (int)rayPosY;
-                std::cout << " - ";
-                std::cout << sprite[i].y - 0.5f;
-                std::cout << "\n";
-                */
-
                 if ((int)rayPosX == sprite[i].x - 0.5f && (int)rayPosY == sprite[i].y - 0.5f)
                 {
+                    sprite[i].texture = spriteTextures[8];
                     printf("Hit sprite\n");
                     hit = 1;
                 }
@@ -357,6 +343,8 @@ void shoot()
             if (istep > 100) hit = 1;
             istep++;
         }
+
+        canFire = false;
     }
 }
 
