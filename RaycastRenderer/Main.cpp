@@ -52,6 +52,8 @@ double ZBuffer[screenWidth];
 int spriteOrder[255];
 double spriteDistance[255];
 
+SDL_Surface* uibg;
+
 int numGuns = 1;
 SDL_Surface* gunTextures[255];
 int gunTexture = 0;
@@ -62,6 +64,10 @@ bool gunSwayRight = true;
 
 bool canFire = true;
 float fireCooldown = 0.5f;
+
+int numFaces = 1;
+SDL_Surface* faceTextures[255];
+int faceTexture = 0;
 
 // AUDIO
 Mix_Music* music = NULL;
@@ -238,11 +244,22 @@ void setPixel(SDL_Surface* surface, int x, int y, Uint32 color) {
 
 void loadMedia()
 {
+    std::string nameOfFile = "ui/uibg.bmp";
+    uibg = SDL_LoadBMP(nameOfFile.c_str());
+
     // Gun UI
     for (int i = 0; i < numGuns*2; i++) {
         std::string fileName = "ui/gun_" + std::to_string(i) + ".bmp";
         gunTextures[i] = SDL_LoadBMP(fileName.c_str());
         if (!gunTextures[i]) {
+            std::cerr << "Failed to load UI texture! SDL_Error: " << SDL_GetError() << std::endl;
+        }
+    }
+    // Face UI
+    for (int i = 0; i < numFaces; i++) {
+        std::string fileName = "ui/face_" + std::to_string(i) + ".bmp";
+        faceTextures[i] = SDL_LoadBMP(fileName.c_str());
+        if (!faceTextures[i]) {
             std::cerr << "Failed to load UI texture! SDL_Error: " << SDL_GetError() << std::endl;
         }
     }
@@ -266,7 +283,7 @@ void loadMedia()
     }
 }
 
-SDL_Rect* UIBase = new SDL_Rect{ 0, renderHeight, screenWidth, screenHeight - renderHeight };
+//SDL_Rect* UIBase = new SDL_Rect{ 0, renderHeight, screenWidth, screenHeight - renderHeight };
 void renderUI()
 {   
     Uint32 colorKey = SDL_MapRGB(gunTextures[gunTexture]->format, 0x00, 0x00, 0x00); // Black color
@@ -275,10 +292,17 @@ void renderUI()
     //gunOffsetY = abs(gunOffsetX / 3);
     gunOffsetY = ((1.0f/200.0f) * (gunOffsetX * gunOffsetX));
 
-    SDL_Rect overlayRect = { screenWidth / 2 - (192/2) + gunOffsetX, 300 + gunOffsetY, 0, 0 };
-    SDL_BlitSurface(gunTextures[gunTexture], NULL, screenSurface, &overlayRect);
+    SDL_Rect gunRect = { screenWidth / 2 - (192/2) + gunOffsetX, 300 + gunOffsetY, 0, 0 };
+    SDL_BlitSurface(gunTextures[gunTexture], NULL, screenSurface, &gunRect);
 
-    SDL_FillRect(screenSurface, UIBase, 0x00);
+    //SDL_FillRect(screenSurface, UIBase, SDL_MapRGB(screenSurface->format, 0x14, 0x23, 0x14));
+    SDL_Rect uibgRect = { 0, renderHeight, screenWidth, screenHeight - renderHeight };
+    SDL_BlitSurface(uibg, NULL, screenSurface, &uibgRect);
+
+    SDL_SetColorKey(faceTextures[faceTexture], SDL_TRUE, colorKey);
+
+    SDL_Rect faceRect = { screenWidth / 2 - 72, screenHeight-160, 0, 0};
+    SDL_BlitSurface(faceTextures[faceTexture], NULL, screenSurface, &faceRect);
 }
 
 void shoot()
