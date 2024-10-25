@@ -329,14 +329,15 @@ void shoot()
                 if ((int)rayPosX == sprite[i].x - 0.5f && (int)rayPosY == sprite[i].y - 0.5f)
                 {
                     if (sprite[i].texture == spriteTextures[1]) sprite[i].texture = spriteTextures[8];
-                    printf("Hit sprite\n");
+                    //printf("Hit sprite\n");
                     hit = 1;
                 }
             }
             if (worldMap[(int)floor(rayPosX)][(int)floor(rayPosY)] != 0)
             {
                 //worldMap[(int)floor(rayPosX)][(int)floor(rayPosY)] = 0;
-                printf("Hit wall\n");
+
+                //printf("Hit wall\n");
                 hit = 1;
             }
                 
