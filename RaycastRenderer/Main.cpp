@@ -1,4 +1,6 @@
 #include <SDL.h>
+#include <SDL_mixer.h>
+#include <SDL_ttf.h>
 #include <stdio.h>
 #include <cmath>
 #include <string>
@@ -7,7 +9,6 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
-#include <SDL_mixer.h>
 
 #define mapWidth 25
 #define mapHeight 25
@@ -72,6 +73,8 @@ int faceTexture = 0;
 // AUDIO
 Mix_Music* music = NULL;
 Mix_Chunk* fire = NULL;
+
+TTF_Font* font = NULL;
 
 void sortSprites(int* order, double* dist, int amount)
 {
@@ -281,6 +284,12 @@ void loadMedia()
     {
         printf("Failed to load sound effect! SDL_mixer Error: %s\n", Mix_GetError());
     }
+
+    font = TTF_OpenFont("font/VCR_OSD_MONO_1.001.ttf", 36);
+    if (font == NULL)
+    {
+        printf("Failed to load font! SDL_ttf Error: %s\n", TTF_GetError());
+    }
 }
 
 void renderUI()
@@ -301,7 +310,17 @@ void renderUI()
     SDL_SetColorKey(faceTextures[faceTexture], SDL_TRUE, colorKey);
 
     SDL_Rect faceRect = { screenWidth / 2 - 72, screenHeight-160, 0, 0};
-    SDL_BlitSurface(faceTextures[faceTexture], NULL, screenSurface, &faceRect);
+    SDL_BlitSurface(faceTextures[faceTexture], NULL, screenSurface, &faceRect); 
+
+    // THIS CAUSES A MEMORY LEAK
+    /*
+    SDL_Color textColor = { 255, 0, 0 };
+
+    SDL_Rect* ammoTextRect = new SDL_Rect{ 400, 500, 0, 0 };
+    SDL_Surface* ammoTextSurface = TTF_RenderText_Solid(font, "AMMO: 100", textColor);
+
+    SDL_BlitSurface(ammoTextSurface, NULL, screenSurface, ammoTextRect);
+    */
 }
 
 void shoot()
@@ -547,6 +566,10 @@ int main(int argc, char* args[])
 
             SDL_UpdateWindowSurface(window);
         }
+    }
+    if (TTF_Init() == -1)
+    {
+        printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
     }
 
     loadMap("maps/coolmap.rmap");
