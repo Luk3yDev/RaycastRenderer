@@ -66,7 +66,7 @@ int gunOffsetY = 0;
 bool gunSwayRight = true;
 
 bool canFire = true;
-float fireCooldown = 1.0f;
+double fireCooldown = 1.0;
 
 int numFaces = 1;
 SDL_Surface* faceTextures[255];
@@ -444,7 +444,33 @@ void Update(float deltaTime)
             if (worldMap[mapX][mapY] > 0)
             {
                 hit = worldMap[mapX][mapY];
-                if (hit > wallTypes) hit = 1;
+                if (hit >= wallTypes) hit = 1;
+            }
+        }
+
+        // Door?
+        if (hit == 9)
+        {
+            mapX += dirX;
+            mapY += dirY;
+
+            if (side == 0)
+            {
+                sideDistX += deltaDistX / 2;
+
+                if (worldMap[mapX][mapY] != 9)
+                {
+                    sideDistX -= deltaDistX / 2;
+                }
+            }
+            else
+            {
+                sideDistY += deltaDistY / 2;
+
+                if (worldMap[mapX][mapY] != 9)
+                {
+                    sideDistY -= deltaDistY / 2;
+                }
             }
         }
 
@@ -463,7 +489,7 @@ void Update(float deltaTime)
         else           wallX = posX + perpWallDist * rayDirX;
         wallX -= floor((wallX));
 
-        float verticleScale = (float)lineHeight / (float)wallTextureSize;
+        double verticleScale = (double)lineHeight / (double)wallTextureSize;
         int sampleX = (int)floor((wallX * wallTextureSize)) % wallTextureSize;
 
         for (int y = 0; y < lineHeight; y++)
@@ -473,6 +499,12 @@ void Update(float deltaTime)
             int sampleY = (int)floor(y / verticleScale);
 
             SDL_Color rgb = getPixelColor(wallTextures[hit], sampleX, sampleY);
+            if (side == 1)
+            {
+                rgb.r = rgb.r >> 1;
+                rgb.g = rgb.g >> 1;
+                rgb.b = rgb.b >> 1;
+            }
             setPixel(screenSurface, x, y + (renderHeight / 2) - (lineHeight / 2), SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
         }
 
@@ -577,7 +609,7 @@ int main(int argc, char* args[])
     loadMap("maps/coolmap.rmap");
     loadMedia();
 
-    Mix_PlayMusic(music, -1);
+    //Mix_PlayMusic(music, -1);
 
     Uint64 NOW = SDL_GetPerformanceCounter();
     Uint64 LAST = 0;
