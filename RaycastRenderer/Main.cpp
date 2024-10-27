@@ -372,7 +372,7 @@ void shoot()
 
 SDL_Rect* floorRect = new SDL_Rect{ 0, renderHeight / 2, screenWidth, renderHeight / 2 };
 
-void Update(float deltaTime)
+void Update(double deltaTime)
 {
     // Clear the screen
     SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
@@ -606,7 +606,7 @@ int main(int argc, char* args[])
         printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
     }
 
-    loadMap("maps/coolmap.rmap");
+    loadMap("maps/2.rmap");
     loadMedia();
 
     //Mix_PlayMusic(music, -1);
