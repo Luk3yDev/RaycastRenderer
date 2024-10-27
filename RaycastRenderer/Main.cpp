@@ -28,11 +28,11 @@ SDL_Surface* screenSurface = NULL;
 double posX = 2, posY = 2;
 double dirX = -1, dirY = 0;
 double planeX = 0, planeY = 0.66;
-double moveSpeed = 0.006f;
-double rotSpeed = 0.002f;
+double moveSpeed = 1.8f;
+double rotSpeed = 0.6f;
 
 const int wallTextureSize = 64;
-const int wallTypes = 9; // Must always be 1 higher than the actual amount of tile textures, as air (0) counts as a wall type
+const int wallTypes = 10; // Must always be 1 higher than the actual amount of tile textures, as air (0) counts as a wall type
 SDL_Surface* wallTextures[wallTypes];
 
 struct Sprite
@@ -53,6 +53,8 @@ double ZBuffer[screenWidth];
 int spriteOrder[255];
 double spriteDistance[255];
 
+// HUD
+
 SDL_Surface* uibg;
 
 int numGuns = 1;
@@ -64,17 +66,17 @@ int gunOffsetY = 0;
 bool gunSwayRight = true;
 
 bool canFire = true;
-float fireCooldown = 0.5f;
+float fireCooldown = 1.0f;
 
 int numFaces = 1;
 SDL_Surface* faceTextures[255];
 int faceTexture = 0;
 
+TTF_Font* font = NULL;
+
 // AUDIO
 Mix_Music* music = NULL;
 Mix_Chunk* fire = NULL;
-
-TTF_Font* font = NULL;
 
 void sortSprites(int* order, double* dist, int amount)
 {
@@ -327,6 +329,8 @@ void shoot()
 {
     if (canFire) 
     {
+        canFire = false;
+
         gunTexture = 1;
         Mix_PlayChannel(-1, fire, 0); 
 
@@ -362,9 +366,7 @@ void shoot()
                 
             if (istep > 100) hit = 1;
             istep++;
-        }
-
-        canFire = false;
+        }  
     }
 }
 
@@ -587,7 +589,7 @@ int main(int argc, char* args[])
     {
         LAST = NOW;
         NOW = SDL_GetPerformanceCounter();
-        deltaTime = ((NOW - LAST) * 1000 / (double)SDL_GetPerformanceFrequency());
+        deltaTime = ((NOW - LAST) * 3 / (double)SDL_GetPerformanceFrequency());
 
         Update(deltaTime);
 
@@ -678,7 +680,7 @@ int main(int argc, char* args[])
         {
             if (gunSwayRight)
             {
-                gunOffsetX += deltaTime;
+                gunOffsetX += 300 * deltaTime;
                 if (gunOffsetX > 80)
                 {
                     gunSwayRight = false;
@@ -686,7 +688,7 @@ int main(int argc, char* args[])
             }
             else
             {
-                gunOffsetX -= deltaTime;
+                gunOffsetX -= 300 * deltaTime;
                 if (gunOffsetX < -80)
                 {
                     gunSwayRight = true;
@@ -695,11 +697,11 @@ int main(int argc, char* args[])
         }
         else
         {
-            if (gunOffsetX > 0) gunOffsetX -= deltaTime;
-            if (gunOffsetX < 0) gunOffsetX += deltaTime;
+            if (gunOffsetX > 0) gunOffsetX -= 300 * deltaTime;
+            if (gunOffsetX < 0) gunOffsetX += 300 * deltaTime;
         }
 
-        if (!canFire) fireCooldown -= deltaTime * 0.002f;
+        if (!canFire) fireCooldown -= deltaTime;
         if (fireCooldown <= 0)
         {
             canFire = true;
