@@ -29,7 +29,7 @@ double posX = 2, posY = 2;
 double dirX = -1, dirY = 0;
 double planeX = 0, planeY = 0.66;
 double moveSpeed = 1.8f;
-double rotSpeed = 0.6f;
+double rotSpeed = 0.8f;
 
 const int wallTextureSize = 64;
 const int wallTypes = 10; // Must always be 1 higher than the actual amount of tile textures, as air (0) counts as a wall type
@@ -451,9 +451,6 @@ void Update(double deltaTime)
         // Door?
         if (hit == 9)
         {
-            mapX += dirX;
-            mapY += dirY;
-
             if (side == 0)
             {
                 sideDistX += deltaDistX / 2;
