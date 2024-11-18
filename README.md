@@ -12,3 +12,6 @@ Maps are created in [this](https://github.com/Luk3yDev/RaycastMapEditor) C++ pro
 
 ## Personal note
 This is my first C++ program, I've done a lot of programming in the past but not at this level. I apologise if some things are done in unorthodox ways or aren't structured nicely.
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
