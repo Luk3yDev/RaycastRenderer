@@ -54,7 +54,6 @@ int spriteOrder[255];
 double spriteDistance[255];
 
 // HUD
-
 SDL_Surface* uibg;
 
 int numGuns = 1;
@@ -683,13 +682,13 @@ int main(int argc, char* args[])
         // Applying input
         if (movingForward)
         {
-            if (worldMap[int(posX + dirX * moveSpeed * deltaTime)][int(posY)] == false) posX += dirX * moveSpeed * deltaTime;
-            if (worldMap[int(posX)][int(posY + dirY * moveSpeed * deltaTime)] == false) posY += dirY * moveSpeed * deltaTime; 
+            if (worldMap[int(posX + dirX * moveSpeed*4 * deltaTime)][int(posY)] == 0) posX += dirX * moveSpeed * deltaTime;
+            if (worldMap[int(posX)][int(posY + dirY * moveSpeed*4 * deltaTime)] == 0) posY += dirY * moveSpeed * deltaTime;
         }
         if (movingBackward)
         {
-            if (worldMap[int(posX - dirX * moveSpeed * deltaTime)][int(posY)] == false) posX -= dirX * moveSpeed * deltaTime;
-            if (worldMap[int(posX)][int(posY - dirY * moveSpeed * deltaTime)] == false) posY -= dirY * moveSpeed * deltaTime;
+            if (worldMap[int(posX - dirX * moveSpeed*4 * deltaTime)][int(posY)] == 0) posX -= dirX * moveSpeed * deltaTime;
+            if (worldMap[int(posX)][int(posY - dirY * moveSpeed*4 * deltaTime)] == 0) posY -= dirY * moveSpeed * deltaTime;
         }
         if (turningRight)
         {
