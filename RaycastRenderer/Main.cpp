@@ -424,9 +424,12 @@ void Update(double deltaTime)
             sideDistY = (mapY + 1.0 - posY) * deltaDistY;
         }
 
+        int distfade = 0;
+
         // DDA
         while (hit == 0)
         {
+            if (distfade < 255) distfade += 10; // Higher value = view range shorter / 'darker room'
             if (sideDistX < sideDistY)
             {
                 sideDistX += deltaDistX;
@@ -495,6 +498,13 @@ void Update(double deltaTime)
             int sampleY = (int)floor(y / verticleScale);
 
             SDL_Color rgb = getPixelColor(wallTextures[hit], sampleX, sampleY);
+            if (rgb.r - distfade < 0) rgb.r = 0;
+            else rgb.r -= distfade;
+            if (rgb.g - distfade < 0) rgb.g = 0;
+            else rgb.g -= distfade;
+            if (rgb.b - distfade < 0) rgb.b = 0;
+            else rgb.b -= distfade;
+
             if (side == 1)
             {
                 rgb.r = rgb.r >> 1;
