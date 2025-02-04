@@ -1,6 +1,5 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
-#include <SDL_ttf.h>
 #include <stdio.h>
 #include <cmath>
 #include <string>
@@ -14,7 +13,6 @@
 #define mapHeight 25
 #define screenWidth 640
 #define screenHeight 640
-#define renderHeight 480
 
 #define texWidth 64
 #define texHeight 64
@@ -22,7 +20,9 @@
 int worldMap[mapWidth][mapHeight];
 
 SDL_Window* window = NULL;
-SDL_Surface* screenSurface = NULL;
+SDL_Renderer* renderer = NULL;
+
+int bpp;
 
 // Player variables
 double posX = 2, posY = 2;
@@ -52,30 +52,6 @@ double ZBuffer[screenWidth];
 
 int spriteOrder[255];
 double spriteDistance[255];
-
-// HUD
-SDL_Surface* uibg;
-
-int numGuns = 1;
-SDL_Surface* gunTextures[255];
-int gunTexture = 0;
-
-int gunOffsetX = 0;
-int gunOffsetY = 0;
-bool gunSwayRight = true;
-
-bool canFire = true;
-double fireCooldown = 1.0;
-
-int numFaces = 1;
-SDL_Surface* faceTextures[255];
-int faceTexture = 0;
-
-TTF_Font* font = NULL;
-
-// AUDIO
-Mix_Music* music = NULL;
-Mix_Chunk* fire = NULL;
 
 void sortSprites(int* order, double* dist, int amount)
 {
@@ -188,8 +164,6 @@ SDL_Color getPixelColor(SDL_Surface* surface, int x, int y) {
         SDL_LockSurface(surface);
     }
 
-    // Calculate the pixel position
-    int bpp = surface->format->BytesPerPixel;
     Uint8* pixel = (Uint8*)surface->pixels + y * surface->pitch + x * bpp;
 
     // Get the color based on the pixel format
@@ -222,359 +196,6 @@ SDL_Color getPixelColor(SDL_Surface* surface, int x, int y) {
     return color;
 }
 
-void setPixel(SDL_Surface* surface, int x, int y, Uint32 color) {
-    // Check if the coordinates are within the surface bounds
-    if (x < 0 || x >= surface->w || y < 0 || y >= surface->h) {
-        return; // Out of bounds
-    }
-
-    // Lock the surface if it is not already locked
-    if (SDL_MUSTLOCK(surface)) {
-        if (SDL_LockSurface(surface) < 0) {
-            std::cerr << "Unable to lock surface: " << SDL_GetError() << std::endl;
-            return;
-        }
-    }
-
-    // Get the address of the pixel
-    Uint32* pixels = (Uint32*)surface->pixels;
-    pixels[(y * surface->w) + x] = color; // Set the pixel color
-
-    // Unlock the surface
-    if (SDL_MUSTLOCK(surface)) {
-        SDL_UnlockSurface(surface);
-    }
-}
-
-void loadMedia()
-{
-    std::string nameOfFile = "ui/uibg.bmp";
-    uibg = SDL_LoadBMP(nameOfFile.c_str());
-
-    // Gun UI
-    for (int i = 0; i < numGuns*2; i++) {
-        std::string fileName = "ui/gun_" + std::to_string(i) + ".bmp";
-        gunTextures[i] = SDL_LoadBMP(fileName.c_str());
-        if (!gunTextures[i]) {
-            std::cerr << "Failed to load UI texture! SDL_Error: " << SDL_GetError() << std::endl;
-        }
-    }
-    // Face UI
-    for (int i = 0; i < numFaces; i++) {
-        std::string fileName = "ui/face_" + std::to_string(i) + ".bmp";
-        faceTextures[i] = SDL_LoadBMP(fileName.c_str());
-        if (!faceTextures[i]) {
-            std::cerr << "Failed to load UI texture! SDL_Error: " << SDL_GetError() << std::endl;
-        }
-    }
-
-    // Audio
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
-    {
-        printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
-    }
-
-    music = Mix_LoadMUS("audio/music/e1m1.wav");
-    if (music == NULL)
-    {
-        printf("Failed to load music! SDL_mixer Error: %s\n", Mix_GetError());
-    }
-
-    fire = Mix_LoadWAV("audio/pew.wav");
-    if (fire == NULL)
-    {
-        printf("Failed to load sound effect! SDL_mixer Error: %s\n", Mix_GetError());
-    }
-
-    font = TTF_OpenFont("font/VCR_OSD_MONO_1.001.ttf", 36);
-    if (font == NULL)
-    {
-        printf("Failed to load font! SDL_ttf Error: %s\n", TTF_GetError());
-    }
-}
-
-void renderUI()
-{   
-    Uint32 colorKey = SDL_MapRGB(gunTextures[gunTexture]->format, 0x00, 0x00, 0x00); // Black color
-    SDL_SetColorKey(gunTextures[gunTexture], SDL_TRUE, colorKey);
-
-    //gunOffsetY = abs(gunOffsetX / 3);
-    gunOffsetY = ((1.0f/200.0f) * (gunOffsetX * gunOffsetX));
-
-    SDL_Rect gunRect = { screenWidth / 2 - (192/2) + gunOffsetX, 300 + gunOffsetY, 0, 0 };
-    SDL_BlitSurface(gunTextures[gunTexture], NULL, screenSurface, &gunRect);
-
-    //SDL_FillRect(screenSurface, UIBase, SDL_MapRGB(screenSurface->format, 0x14, 0x23, 0x14));
-    SDL_Rect uibgRect = { 0, renderHeight, screenWidth, screenHeight - renderHeight };
-    SDL_BlitSurface(uibg, NULL, screenSurface, &uibgRect);
-
-    SDL_SetColorKey(faceTextures[faceTexture], SDL_TRUE, colorKey);
-
-    SDL_Rect faceRect = { screenWidth / 2 - 72, screenHeight-160, 0, 0};
-    SDL_BlitSurface(faceTextures[faceTexture], NULL, screenSurface, &faceRect); 
-
-    // THIS CAUSES A MEMORY LEAK
-    /*
-    SDL_Color textColor = { 255, 0, 0 };
-
-    SDL_Rect* ammoTextRect = new SDL_Rect{ 400, 500, 0, 0 };
-    SDL_Surface* ammoTextSurface = TTF_RenderText_Solid(font, "AMMO: 100", textColor);
-
-    SDL_BlitSurface(ammoTextSurface, NULL, screenSurface, ammoTextRect);
-    */
-}
-
-void shoot()
-{
-    if (canFire) 
-    {
-        canFire = false;
-
-        gunTexture = 1;
-        Mix_PlayChannel(-1, fire, 0); 
-
-        double rayDirX = dirX;
-        double rayDirY = dirY;
-        double rayPosX = posX;
-        double rayPosY = posY;
-
-        int hit = 0;
-        int istep = 0;
-
-        while (hit == 0)
-        {
-            rayPosX += rayDirX;
-            rayPosY += rayDirY;
-
-            for (int i = 0; i < numSprites; i++)
-            {
-                if ((int)rayPosX == sprite[i].x - 0.5f && (int)rayPosY == sprite[i].y - 0.5f)
-                {
-                    if (sprite[i].texture == spriteTextures[1]) sprite[i].texture = spriteTextures[8];
-                    //printf("Hit sprite\n");
-                    hit = 1;
-                }
-            }
-            if (worldMap[(int)floor(rayPosX)][(int)floor(rayPosY)] != 0)
-            {
-                //worldMap[(int)floor(rayPosX)][(int)floor(rayPosY)] = 0;
-
-                //printf("Hit wall\n");
-                hit = 1;
-            }
-                
-            if (istep > 100) hit = 1;
-            istep++;
-        }  
-    }
-}
-
-SDL_Rect* floorRect = new SDL_Rect{ 0, renderHeight / 2, screenWidth, renderHeight / 2 };
-
-void Update(double deltaTime)
-{
-    // Clear the screen
-    SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
-
-    // Create the floor
-    SDL_FillRect(screenSurface, floorRect, SDL_MapRGB(screenSurface->format, 0x12, 0x12, 0x12));
-
-    // RAYCAST
-    for (int x = 0; x < screenWidth; x++)
-    {
-        double cameraX = 2 * x / (double)screenWidth - 1;
-        double rayDirX = dirX + planeX * cameraX;
-        double rayDirY = dirY + planeY * cameraX;
-
-        int mapX = int(posX);
-        int mapY = int(posY);
-
-        double sideDistX;
-        double sideDistY;
-
-        double deltaDistX = (rayDirX == 0) ? 1e30 : std::abs(1 / rayDirX);
-        double deltaDistY = (rayDirY == 0) ? 1e30 : std::abs(1 / rayDirY);
-
-        double perpWallDist;
-
-        int stepX;
-        int stepY;
-
-        int hit = 0;
-        int side;
-
-        if (rayDirX < 0)
-        {
-            stepX = -1;
-            sideDistX = (posX - mapX) * deltaDistX;
-        }
-        else
-        {
-            stepX = 1;
-            sideDistX = (mapX + 1.0 - posX) * deltaDistX;
-        }
-        if (rayDirY < 0)
-        {
-            stepY = -1;
-            sideDistY = (posY - mapY) * deltaDistY;
-        }
-        else
-        {
-            stepY = 1;
-            sideDistY = (mapY + 1.0 - posY) * deltaDistY;
-        }
-
-        int distfade = 0;
-
-        // DDA
-        while (hit == 0)
-        {
-            if (distfade < 255) distfade += 10; // Higher value = view range shorter / 'darker room'
-            if (sideDistX < sideDistY)
-            {
-                sideDistX += deltaDistX;
-                mapX += stepX;
-                side = 0;
-            }
-            else
-            {
-                sideDistY += deltaDistY;
-                mapY += stepY;
-                side = 1;
-            }
-
-            if (worldMap[mapX][mapY] > 0)
-            {
-                hit = worldMap[mapX][mapY];
-                if (hit >= wallTypes) hit = 1;
-            }
-        }
-
-        // Door?
-        if (hit == 9)
-        {
-            if (side == 0)
-            {
-                sideDistX += deltaDistX / 2;
-
-                if (worldMap[mapX][mapY] != 9)
-                {
-                    sideDistX -= deltaDistX / 2;
-                }
-            }
-            else
-            {
-                sideDistY += deltaDistY / 2;
-
-                if (worldMap[mapX][mapY] != 9)
-                {
-                    sideDistY -= deltaDistY / 2;
-                }
-            }
-        }
-
-        if (side == 0) perpWallDist = (sideDistX - deltaDistX);
-        else           perpWallDist = (sideDistY - deltaDistY);
-
-        int lineHeight = (int)(renderHeight / perpWallDist);
-
-        int drawStart = -lineHeight / 2 + renderHeight / 2;
-        if (drawStart < 0) drawStart = 0;
-        int drawEnd = lineHeight / 2 + renderHeight / 2;
-        if (drawEnd >= renderHeight) drawEnd = renderHeight - 1;
-
-        double wallX; // Exactly where the wall was hit
-        if (side == 0) wallX = posY + perpWallDist * rayDirY;
-        else           wallX = posX + perpWallDist * rayDirX;
-        wallX -= floor((wallX));
-
-        double verticleScale = (double)lineHeight / (double)wallTextureSize;
-        int sampleX = (int)floor((wallX * wallTextureSize)) % wallTextureSize;
-
-        for (int y = 0; y < lineHeight; y++)
-        {
-            if (y + (renderHeight / 2) - (lineHeight / 2) > renderHeight) continue;
-            if (y + (renderHeight / 2) - (lineHeight / 2) < 0) continue;
-            int sampleY = (int)floor(y / verticleScale);
-
-            SDL_Color rgb = getPixelColor(wallTextures[hit], sampleX, sampleY);
-            if (rgb.r - distfade < 0) rgb.r = 0;
-            else rgb.r -= distfade;
-            if (rgb.g - distfade < 0) rgb.g = 0;
-            else rgb.g -= distfade;
-            if (rgb.b - distfade < 0) rgb.b = 0;
-            else rgb.b -= distfade;
-
-            if (side == 1)
-            {
-                rgb.r = rgb.r >> 1;
-                rgb.g = rgb.g >> 1;
-                rgb.b = rgb.b >> 1;
-            }
-            setPixel(screenSurface, x, y + (renderHeight / 2) - (lineHeight / 2), SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
-        }
-
-        ZBuffer[x] = perpWallDist;
-    }
-
-    // SPRITECAST
-
-    // Sprite sorting
-    for (int i = 0; i < numSprites; i++)
-    {
-        spriteOrder[i] = i;
-        spriteDistance[i] = ((posX - sprite[i].x) * (posX - sprite[i].x) + (posY - sprite[i].y) * (posY - sprite[i].y)); //sqrt not taken, unneeded
-    }
-    sortSprites(spriteOrder, spriteDistance, numSprites);
-    for (int i = 0; i < numSprites; i++)
-    {
-        double spriteX = sprite[spriteOrder[i]].x - posX;
-        double spriteY = sprite[spriteOrder[i]].y - posY;
-
-        double invDet = 1.0 / (planeX * dirY - dirX * planeY);
-
-        double transformX = invDet * (dirY * spriteX - dirX * spriteY);
-        double transformY = invDet * (-planeY * spriteX + planeX * spriteY);
-
-        int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
-
-        int spriteHeight = abs(int(renderHeight / (transformY)));
-
-        int drawStartY = -spriteHeight / 2 + renderHeight / 2;
-        if (drawStartY < 0) drawStartY = 0;
-        int drawEndY = spriteHeight / 2 + renderHeight / 2;
-        if (drawEndY >= renderHeight) drawEndY = renderHeight - 1;
-
-        int spriteWidth = abs(int(renderHeight / (transformY)));
-        int drawStartX = -spriteWidth / 2 + spriteScreenX;
-        if (drawStartX < 0) drawStartX = 0;
-        int drawEndX = spriteWidth / 2 + spriteScreenX;
-        if (drawEndX >= screenWidth) drawEndX = screenWidth - 1;
-
-        for (int slice = drawStartX; slice < drawEndX; slice++)
-        {
-            int texX = int(256 * (slice - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth) / 256;
-
-            if (transformY > 0 && slice > 0 && slice < screenWidth && transformY < ZBuffer[slice])
-                for (int y = drawStartY; y < drawEndY; y++)
-                {
-                    int d = (y) * 256 - renderHeight * 128 + spriteHeight * 128; // 256 and 128 factors avoids using floats
-                    int texY = ((d * texHeight) / spriteHeight) / 256;
-                    SDL_Color color = getPixelColor(sprite[spriteOrder[i]].texture, texX / 2, texY / 2);
-                    
-                    if (!SDL_MapRGB(screenSurface->format, color.r, color.b, color.g) == 0x00)
-                    {
-                        setPixel(screenSurface, slice, y, SDL_MapRGB(screenSurface->format, color.r, color.g, color.b));
-                    }
-                }
-        }
-    }
-
-    renderUI();
-
-    SDL_UpdateWindowSurface(window);
-}
-
 int main(int argc, char* args[])
 {
     bool movingForward = false;
@@ -594,28 +215,30 @@ int main(int argc, char* args[])
     else
     {
         window = SDL_CreateWindow("Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_SHOWN);
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
         if (window == NULL)
         {
             printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        }
-        else
+        }       
+        else if (renderer == NULL)
         {
-            screenSurface = SDL_GetWindowSurface(window);
-            
-            SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
-
-            SDL_UpdateWindowSurface(window);
+            printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
         }
-    }
-    if (TTF_Init() == -1)
-    {
-        printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
     }
 
     loadMap("maps/2.rmap");
-    loadMedia();
 
-    //Mix_PlayMusic(music, -1);
+    SDL_Texture* frameBuffer = SDL_CreateTexture(renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        screenWidth,
+        screenHeight);
+
+    if (!frameBuffer) {
+        std::cerr << "Texture creation failed: " << SDL_GetError() << std::endl;
+        return -1;
+    }
 
     Uint64 NOW = SDL_GetPerformanceCounter();
     Uint64 LAST = 0;
@@ -628,8 +251,6 @@ int main(int argc, char* args[])
         LAST = NOW;
         NOW = SDL_GetPerformanceCounter();
         deltaTime = ((NOW - LAST) * 3 / (double)SDL_GetPerformanceFrequency());
-
-        Update(deltaTime);
 
         double oldDirX = dirX;
         double oldPlaneX = planeX;
@@ -653,9 +274,6 @@ int main(int argc, char* args[])
                 case SDLK_DOWN:
                     movingBackward = true;
                     moving = true;
-                    break;
-                case SDLK_LCTRL:
-                    shoot();
                     break;
                 case SDLK_ESCAPE:
                     done = true;
@@ -714,40 +332,194 @@ int main(int argc, char* args[])
             planeX = planeX * cos(rotSpeed * deltaTime) - planeY * sin(rotSpeed * deltaTime);
             planeY = oldPlaneX * sin(rotSpeed * deltaTime) + planeY * cos(rotSpeed * deltaTime);
         }
-        if (moving)
+
+        uint32_t* pixels = nullptr;
+        int pitch = 0;
+
+        // Lock the texture for pixel manipulation
+        if (SDL_LockTexture(frameBuffer, nullptr, (void**)&pixels, &pitch) != 0) {
+            std::cerr << "SDL_LockTexture failed: " << SDL_GetError() << std::endl;
+        }
+
+        // RAYCAST
+        for (int x = 0; x < screenWidth; x++)
         {
-            if (gunSwayRight)
+            double cameraX = 2 * x / (double)screenWidth - 1;
+            double rayDirX = dirX + planeX * cameraX;
+            double rayDirY = dirY + planeY * cameraX;
+
+            int mapX = int(posX);
+            int mapY = int(posY);
+
+            double sideDistX;
+            double sideDistY;
+
+            double deltaDistX = (rayDirX == 0) ? 1e30 : std::abs(1 / rayDirX);
+            double deltaDistY = (rayDirY == 0) ? 1e30 : std::abs(1 / rayDirY);
+
+            double perpWallDist;
+
+            int stepX;
+            int stepY;
+
+            int hit = 0;
+            int side;
+
+            if (rayDirX < 0)
             {
-                gunOffsetX += 300 * deltaTime;
-                if (gunOffsetX > 80)
-                {
-                    gunSwayRight = false;
-                }
+                stepX = -1;
+                sideDistX = (posX - mapX) * deltaDistX;
             }
             else
             {
-                gunOffsetX -= 300 * deltaTime;
-                if (gunOffsetX < -80)
+                stepX = 1;
+                sideDistX = (mapX + 1.0 - posX) * deltaDistX;
+            }
+            if (rayDirY < 0)
+            {
+                stepY = -1;
+                sideDistY = (posY - mapY) * deltaDistY;
+            }
+            else
+            {
+                stepY = 1;
+                sideDistY = (mapY + 1.0 - posY) * deltaDistY;
+            }
+
+            int distfade = 0;
+
+            // DDA
+            while (hit == 0)
+            {
+                if (distfade < 255) distfade += 10; // Higher value = view range shorter / 'darker room'
+                if (sideDistX < sideDistY)
                 {
-                    gunSwayRight = true;
+                    sideDistX += deltaDistX;
+                    mapX += stepX;
+                    side = 0;
+                }
+                else
+                {
+                    sideDistY += deltaDistY;
+                    mapY += stepY;
+                    side = 1;
+                }
+
+                if (worldMap[mapX][mapY] > 0)
+                {
+                    hit = worldMap[mapX][mapY];
+                    if (hit >= wallTypes) hit = 1;
                 }
             }
-        }
-        else
-        {
-            if (gunOffsetX > 0) gunOffsetX -= 300 * deltaTime;
-            if (gunOffsetX < 0) gunOffsetX += 300 * deltaTime;
+
+            if (side == 0) perpWallDist = (sideDistX - deltaDistX);
+            else           perpWallDist = (sideDistY - deltaDistY);
+
+            int lineHeight = (int)(screenHeight / perpWallDist);
+
+            int drawStart = -lineHeight / 2 + screenHeight / 2;
+            if (drawStart < 0) drawStart = 0;
+            int drawEnd = lineHeight / 2 + screenHeight / 2;
+            if (drawEnd >= screenHeight) drawEnd = screenHeight - 1;
+
+            double wallX; // Exactly where the wall was hit
+            if (side == 0) wallX = posY + perpWallDist * rayDirY;
+            else           wallX = posX + perpWallDist * rayDirX;
+            wallX -= floor((wallX));
+
+            double verticleScale = (double)lineHeight / (double)wallTextureSize;
+            int sampleX = (int)floor((wallX * wallTextureSize)) % wallTextureSize;
+
+            for (int y = 0; y < lineHeight; y++)
+            {
+                if (y + (screenHeight / 2) - (lineHeight / 2) > screenHeight) continue;
+                if (y + (screenHeight / 2) - (lineHeight / 2) < 0) continue;
+                int sampleY = (int)floor(y / verticleScale);
+
+                SDL_Color rgb = getPixelColor(wallTextures[hit], sampleX, sampleY);
+                if (rgb.r - distfade < 0) rgb.r = 0;
+                else rgb.r -= distfade;
+                if (rgb.g - distfade < 0) rgb.g = 0;
+                else rgb.g -= distfade;
+                if (rgb.b - distfade < 0) rgb.b = 0;
+                else rgb.b -= distfade;
+
+                if (side == 1)
+                {
+                    rgb.r = rgb.r >> 1;
+                    rgb.g = rgb.g >> 1;
+                    rgb.b = rgb.b >> 1;
+                }
+                //setPixel(screenSurface, x, y + (screenHeight / 2) - (lineHeight / 2), SDL_MapRGB(screenSurface->format, rgb.r, rgb.g, rgb.b));
+                pixels[y + (screenHeight/2 )-(lineHeight/2)* (pitch / 4) + x] = SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), rgb.r, rgb.g, rgb.b);
+            }
+
+            ZBuffer[x] = perpWallDist;
         }
 
-        if (!canFire) fireCooldown -= deltaTime;
-        if (fireCooldown <= 0)
+        // SPRITECAST
+        // Sprite sorting
+        for (int i = 0; i < numSprites; i++)
         {
-            canFire = true;
-            gunTexture = 0;
-            fireCooldown = 0.5f;
+            spriteOrder[i] = i;
+            spriteDistance[i] = ((posX - sprite[i].x) * (posX - sprite[i].x) + (posY - sprite[i].y) * (posY - sprite[i].y)); //sqrt not taken, unneeded
         }
+        sortSprites(spriteOrder, spriteDistance, numSprites);
+        for (int i = 0; i < numSprites; i++)
+        {
+            double spriteX = sprite[spriteOrder[i]].x - posX;
+            double spriteY = sprite[spriteOrder[i]].y - posY;
+
+            double invDet = 1.0 / (planeX * dirY - dirX * planeY);
+
+            double transformX = invDet * (dirY * spriteX - dirX * spriteY);
+            double transformY = invDet * (-planeY * spriteX + planeX * spriteY);
+
+            int spriteScreenX = int((screenWidth / 2) * (1 + transformX / transformY));
+
+            int spriteHeight = abs(int(screenHeight / (transformY)));
+
+            int drawStartY = -spriteHeight / 2 + screenHeight / 2;
+            if (drawStartY < 0) drawStartY = 0;
+            int drawEndY = spriteHeight / 2 + screenHeight / 2;
+            if (drawEndY >= screenHeight) drawEndY = screenHeight - 1;
+
+            int spriteWidth = abs(int(screenHeight / (transformY)));
+            int drawStartX = -spriteWidth / 2 + spriteScreenX;
+            if (drawStartX < 0) drawStartX = 0;
+            int drawEndX = spriteWidth / 2 + spriteScreenX;
+            if (drawEndX >= screenWidth) drawEndX = screenWidth - 1;
+
+            for (int slice = drawStartX; slice < drawEndX; slice++)
+            {
+                int texX = int(256 * (slice - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth) / 256;
+
+                if (transformY > 0 && slice > 0 && slice < screenWidth && transformY < ZBuffer[slice])
+                    for (int y = drawStartY; y < drawEndY; y++)
+                    {
+                        int d = (y) * 256 - screenHeight * 128 + spriteHeight * 128; // 256 and 128 factors avoids using floats
+                        int texY = ((d * texHeight) / spriteHeight) / 256;
+                        SDL_Color color = getPixelColor(sprite[spriteOrder[i]].texture, texX / 2, texY / 2);
+
+                        if (!SDL_MapRGB(SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888), color.r, color.b, color.g) == 0x00)
+                        {
+                            //setPixel(screenSurface, slice, y, SDL_MapRGB(screenSurface->format, color.r, color.g, color.b));
+                        }
+                    }
+            }
+        }
+
+        SDL_UnlockTexture(frameBuffer);
+
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, frameBuffer, nullptr, nullptr);
+        SDL_RenderPresent(renderer);
+
+        SDL_UpdateWindowSurface(window);
     }
 
+    SDL_DestroyTexture(frameBuffer);
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 
